@@ -42,9 +42,10 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] `IncreaseStockCommand`/`DecreaseStockCommand`: modüller arası genel stok değiştirme API'si (Faz 5+'ta Inbound/Outbound/Transfer/StockCount tarafından MediatR ile çağrılacak), `StockMovement` audit ledger'ı otomatik yazıyor, concurrency çakışması `Error.Conflict`'e çevriliyor — `StockController`'da Admin-only manuel düzeltme endpoint'i (`/api/stock/increase`, `/api/stock/decrease`) olarak da erişilebilir; uçtan uca doğrulandı (yetersiz stok, concurrency, duplicate code, validation, 401 dahil)
 
 ## Faz 5 — Inbound Modülü (Mal Kabul)
-- [ ] `GoodsReceipt`, `GoodsReceiptLine` entity'leri + migration
-- [ ] Oluşturma + onaylama command'ları
-- [ ] `GoodsReceiptApprovedDomainEvent` → Inventory güncelleme handler'ı
+- [x] `GoodsReceipt`, `GoodsReceiptLine` entity'leri + migration (inbound schema, snake_case; Status: Draft/Approved)
+- [x] Oluşturma (WarehouseId/ProductId varlığı Inventory/Catalog'un query'leri ile doğrulanıyor) + onaylama command'ları (`CreateGoodsReceiptCommand`, `ApproveGoodsReceiptCommand`; onay DepoSorumlusu/DepoMüdürü/Admin'e açık)
+- [x] `GoodsReceiptApprovedDomainEvent` → Inventory güncelleme handler'ı (`GoodsReceiptApprovedDomainEventHandler`, Inbound modülünde yaşıyor, Inventory'nin `IncreaseStockCommand`'ını `ISender` ile çağırıyor — modüller arası çağrı kalıbı ilk kez burada kuruldu, bkz. CLAUDE.md §1 "Modüller arası çağrı kalıbı")
+- [x] Uçtan uca doğrulandı: taslak oluşturma → onay → Inventory'de stok artışı ve `StockMovement` kaydı, çift onay/geçersiz ürün/depo/rol koruması dahil
 
 ## Faz 6 — Outbound Modülü (Sevkiyat / Mal Çıkışı)
 - [ ] `GoodsIssue`, `GoodsIssueLine` entity'leri + migration
