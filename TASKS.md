@@ -10,7 +10,7 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] `docker-compose.yml` iskeleti (postgres servisi)
 - [x] `CLAUDE.md`
 - [x] `TASKS.md`
-- [ ] Git repository başlatma ve ilk commit
+- [x] Git repository başlatma ve ilk commit
 
 ## Faz 1 — Backend Çekirdek
 - [ ] Solution dosyası ve proje şablonları (WMS.Api, WMS.SharedKernel, WMS.BuildingBlocks.Application, modül proje iskeletleri)
