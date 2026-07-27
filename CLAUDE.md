@@ -11,7 +11,7 @@ MVP kapsamı: tek şirket, çoklu depo destekli bir **Depo Yönetim Sistemi**. �
 ## 1. Mimari
 
 - **Clean Architecture**: Domain → Application → Infrastructure → Api (Presentation). Bağımlılıklar her zaman içe doğru; Domain katmanı hiçbir dış katmana bağımlı değildir.
-- **Modüler Monolith**: Her iş modülü kendi Domain/Application/Infrastructure projelerine ve kendi PostgreSQL şemasına sahiptir. Modüller birbirine **doğrudan proje referansı vermez**; yalnızca MediatR (command/query/notification) üzerinden haberleşir.
+- **Modüler Monolith**: Her iş modülü kendi Domain/Application/Infrastructure projelerine ve kendi PostgreSQL şemasına sahiptir. Modüller birbirine **doğrudan proje referansı vermez**; yalnızca MediatR (command/query/notification) üzerinden haberleşir. Her modülün `Infrastructure` katmanındaki `Add{Module}Module(IServiceCollection, IConfiguration)` extension'ı, o modülün kendi `Application` assembly'sinden MediatR handler'larını ve FluentValidation validator'larını kaydeder (bkz. `{Module}ApplicationAssemblyMarker` sınıfları); `WMS.Api/Program.cs` sadece bu extension'ları çağırır.
 - **CQRS**:
   - **Yazma (Command)**: EF Core + LINQ, domain aggregate'leri üzerinden, `I{Aggregate}WriteRepository` (EF Core) kullanılır.
   - **Okuma (Query)**: Dapper + ham SQL, doğrudan DTO/read-model döndürür, `I{Aggregate}ReadRepository` (Dapper) kullanılır. Karmaşık raporlama sorguları burada yazılır.
@@ -27,8 +27,10 @@ MVP kapsamı: tek şirket, çoklu depo destekli bir **Depo Yönetim Sistemi**. �
 backend/
   src/
     WMS.Api/                          # Composition root: controllers, middleware, DI, appsettings
-    WMS.SharedKernel/                 # BaseEntity, IDomainEvent, Result<T>, Guard, base value objects
-    WMS.BuildingBlocks.Application/   # MediatR pipeline behaviors (validation, logging, tx), base abstractions
+    WMS.SharedKernel/                 # BaseEntity, IDomainEvent, Result<T>, Error, Guard
+    BuildingBlocks/
+      WMS.BuildingBlocks.Application/     # ICommand/IQuery/handler abstractions, MediatR pipeline behaviors
+      WMS.BuildingBlocks.Infrastructure/  # EF Core SaveChanges interceptor that dispatches domain events via MediatR
     Modules/
       Identity/
         WMS.Modules.Identity.Domain

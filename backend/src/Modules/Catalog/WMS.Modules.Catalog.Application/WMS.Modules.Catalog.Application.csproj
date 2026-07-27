@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\WMS.Modules.Catalog.Domain\WMS.Modules.Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\WMS.BuildingBlocks.Application\WMS.BuildingBlocks.Application.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,46 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WMS.Api/WMS.Api.csproj" />
+    <Project Path="src/WMS.SharedKernel/WMS.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/WMS.BuildingBlocks.Application/WMS.BuildingBlocks.Application.csproj" />
+    <Project Path="src/BuildingBlocks/WMS.BuildingBlocks.Infrastructure/WMS.BuildingBlocks.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Catalog/">
+    <Project Path="src/Modules/Catalog/WMS.Modules.Catalog.Application/WMS.Modules.Catalog.Application.csproj" />
+    <Project Path="src/Modules/Catalog/WMS.Modules.Catalog.Domain/WMS.Modules.Catalog.Domain.csproj" />
+    <Project Path="src/Modules/Catalog/WMS.Modules.Catalog.Infrastructure/WMS.Modules.Catalog.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/WMS.Modules.Identity.Application/WMS.Modules.Identity.Application.csproj" />
+    <Project Path="src/Modules/Identity/WMS.Modules.Identity.Domain/WMS.Modules.Identity.Domain.csproj" />
+    <Project Path="src/Modules/Identity/WMS.Modules.Identity.Infrastructure/WMS.Modules.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Inbound/">
+    <Project Path="src/Modules/Inbound/WMS.Modules.Inbound.Application/WMS.Modules.Inbound.Application.csproj" />
+    <Project Path="src/Modules/Inbound/WMS.Modules.Inbound.Domain/WMS.Modules.Inbound.Domain.csproj" />
+    <Project Path="src/Modules/Inbound/WMS.Modules.Inbound.Infrastructure/WMS.Modules.Inbound.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Inventory/">
+    <Project Path="src/Modules/Inventory/WMS.Modules.Inventory.Application/WMS.Modules.Inventory.Application.csproj" />
+    <Project Path="src/Modules/Inventory/WMS.Modules.Inventory.Domain/WMS.Modules.Inventory.Domain.csproj" />
+    <Project Path="src/Modules/Inventory/WMS.Modules.Inventory.Infrastructure/WMS.Modules.Inventory.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Outbound/">
+    <Project Path="src/Modules/Outbound/WMS.Modules.Outbound.Application/WMS.Modules.Outbound.Application.csproj" />
+    <Project Path="src/Modules/Outbound/WMS.Modules.Outbound.Domain/WMS.Modules.Outbound.Domain.csproj" />
+    <Project Path="src/Modules/Outbound/WMS.Modules.Outbound.Infrastructure/WMS.Modules.Outbound.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/StockCount/">
+    <Project Path="src/Modules/StockCount/WMS.Modules.StockCount.Application/WMS.Modules.StockCount.Application.csproj" />
+    <Project Path="src/Modules/StockCount/WMS.Modules.StockCount.Domain/WMS.Modules.StockCount.Domain.csproj" />
+    <Project Path="src/Modules/StockCount/WMS.Modules.StockCount.Infrastructure/WMS.Modules.StockCount.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Transfer/">
+    <Project Path="src/Modules/Transfer/WMS.Modules.Transfer.Application/WMS.Modules.Transfer.Application.csproj" />
+    <Project Path="src/Modules/Transfer/WMS.Modules.Transfer.Domain/WMS.Modules.Transfer.Domain.csproj" />
+    <Project Path="src/Modules/Transfer/WMS.Modules.Transfer.Infrastructure/WMS.Modules.Transfer.Infrastructure.csproj" />
+  </Folder>
+</Solution>

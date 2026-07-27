@@ -13,13 +13,13 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] Git repository başlatma ve ilk commit
 
 ## Faz 1 — Backend Çekirdek
-- [ ] Solution dosyası ve proje şablonları (WMS.Api, WMS.SharedKernel, WMS.BuildingBlocks.Application, modül proje iskeletleri)
-- [ ] SharedKernel: `BaseEntity`, `IDomainEvent`, `Result<T>`, Guard yardımcıları
-- [ ] MediatR pipeline behaviors: validation (FluentValidation), logging
-- [ ] Domain event dispatch mekanizması (SaveChangesAsync sonrası MediatR publish)
-- [ ] Global exception handling middleware
-- [ ] Serilog kurulumu
-- [ ] appsettings + DI kayıt iskeleti (modül bazlı `AddXxxModule()` extension'ları)
+- [x] Solution dosyası ve proje şablonları (WMS.Api, WMS.SharedKernel, WMS.BuildingBlocks.Application, WMS.BuildingBlocks.Infrastructure, modül proje iskeletleri — 7 modül × Domain/Application/Infrastructure)
+- [x] SharedKernel: `BaseEntity`, `IDomainEvent`, `Result`/`Result<T>`, `Error`, Guard yardımcıları
+- [x] MediatR pipeline behaviors: validation (FluentValidation), logging
+- [x] Domain event dispatch mekanizması (SaveChangesAsync sonrası MediatR publish — `DomainEventDispatchInterceptor`)
+- [x] Global exception handling middleware (`IExceptionHandler` + ProblemDetails)
+- [x] Serilog kurulumu
+- [x] appsettings + DI kayıt iskeleti (modül bazlı `AddXxxModule()` extension'ları, her modül kendi Application assembly'sinden MediatR/FluentValidation kaydı yapıyor)
 
 ## Faz 2 — Identity & Auth Modülü
 - [ ] `User`, `Role`, `Permission`, `UserRole`, `UserWarehouse` entity'leri

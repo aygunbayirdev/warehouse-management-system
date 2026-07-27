@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WMS.SharedKernel\WMS.SharedKernel.csproj" />
+    <ProjectReference Include="..\BuildingBlocks\WMS.BuildingBlocks.Application\WMS.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\BuildingBlocks\WMS.BuildingBlocks.Infrastructure\WMS.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Identity\WMS.Modules.Identity.Infrastructure\WMS.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Catalog\WMS.Modules.Catalog.Infrastructure\WMS.Modules.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Inventory\WMS.Modules.Inventory.Infrastructure\WMS.Modules.Inventory.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Inbound\WMS.Modules.Inbound.Infrastructure\WMS.Modules.Inbound.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Outbound\WMS.Modules.Outbound.Infrastructure\WMS.Modules.Outbound.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Transfer\WMS.Modules.Transfer.Infrastructure\WMS.Modules.Transfer.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\StockCount\WMS.Modules.StockCount.Infrastructure\WMS.Modules.StockCount.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
