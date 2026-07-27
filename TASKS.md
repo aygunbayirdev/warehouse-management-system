@@ -30,9 +30,10 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] Seed: Admin kullanıcı + 4 rol (Admin, DepoMüdürü, DepoSorumlusu, DepoPersoneli) — uygulama başlangıcında idempotent seed
 
 ## Faz 3 — Catalog Modülü
-- [ ] `Product`, `Category`, `UnitOfMeasure` entity'leri + migration
-- [ ] Command/Query/DTO/Validator/Repository (CRUD)
-- [ ] Controller endpoint'leri
+- [x] `Product`, `Category`, `UnitOfMeasure` entity'leri + migration (catalog schema, snake_case)
+- [x] Command/Query/DTO/Validator/Repository (CRUD) — EF Core write + Dapper read (denormalized join for `ProductDto`)
+- [x] Controller endpoint'leri (`ProductsController`, `CategoriesController`, `UnitsOfMeasureController`); okuma tüm kullanıcılara, yazma Admin/DepoMüdürü'ne açık
+- [x] Referans bütünlüğü: Product'ta kullanılan UnitOfMeasure/Category silinemez (`Error.Conflict`, DB'de `DeleteBehavior.Restrict` ile ikinci savunma katmanı) — uçtan uca doğrulandı
 
 ## Faz 4 — Inventory Modülü
 - [ ] `Warehouse`, `StockItem`, `StockMovement` entity'leri + migration
