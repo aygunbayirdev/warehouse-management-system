@@ -36,9 +36,10 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] Referans bütünlüğü: Product'ta kullanılan UnitOfMeasure/Category silinemez (`Error.Conflict`, DB'de `DeleteBehavior.Restrict` ile ikinci savunma katmanı) — uçtan uca doğrulandı
 
 ## Faz 4 — Inventory Modülü
-- [ ] `Warehouse`, `StockItem`, `StockMovement` entity'leri + migration
-- [ ] Warehouse CRUD
-- [ ] Dapper ile stok seviyesi read-repository / query'leri
+- [x] `Warehouse`, `StockItem`, `StockMovement` entity'leri + migration (inventory schema, snake_case; `StockItem` Postgres `xmin` ile optimistic concurrency — bkz. CLAUDE.md "EF Core Kuralları")
+- [x] Warehouse CRUD (`WarehousesController`; okuma tüm kullanıcılara, yazma Admin/DepoMüdürü'ne açık; silme StockItem varlığıyla korunuyor)
+- [x] Dapper ile stok seviyesi read-repository / query'leri (`GetStockItemsQuery`, catalog şeması ile cross-schema join — CLAUDE.md'de tanımlı pragmatik istisna)
+- [x] `IncreaseStockCommand`/`DecreaseStockCommand`: modüller arası genel stok değiştirme API'si (Faz 5+'ta Inbound/Outbound/Transfer/StockCount tarafından MediatR ile çağrılacak), `StockMovement` audit ledger'ı otomatik yazıyor, concurrency çakışması `Error.Conflict`'e çevriliyor — `StockController`'da Admin-only manuel düzeltme endpoint'i (`/api/stock/increase`, `/api/stock/decrease`) olarak da erişilebilir; uçtan uca doğrulandı (yetersiz stok, concurrency, duplicate code, validation, 401 dahil)
 
 ## Faz 5 — Inbound Modülü (Mal Kabul)
 - [ ] `GoodsReceipt`, `GoodsReceiptLine` entity'leri + migration

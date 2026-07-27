@@ -42,4 +42,12 @@ public static class Guard
 
         return value;
     }
+
+    public static decimal AgainstNegativeOrZero(decimal value, string paramName)
+    {
+        if (value <= 0)
+            throw new ArgumentOutOfRangeException(paramName, value, "Value must be greater than zero.");
+
+        return value;
+    }
 }
