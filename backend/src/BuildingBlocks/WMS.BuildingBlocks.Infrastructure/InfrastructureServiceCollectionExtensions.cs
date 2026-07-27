@@ -15,4 +15,12 @@ public static class InfrastructureServiceCollectionExtensions
 
         return services;
     }
+
+    /// <summary>Registers the single <see cref="ISqlConnectionFactory"/> shared by every module's Dapper read repositories.</summary>
+    public static IServiceCollection AddSqlConnectionFactory(this IServiceCollection services, string connectionString)
+    {
+        services.AddSingleton<ISqlConnectionFactory>(new NpgsqlConnectionFactory(connectionString));
+
+        return services;
+    }
 }

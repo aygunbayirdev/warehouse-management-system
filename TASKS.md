@@ -22,12 +22,12 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] appsettings + DI kayıt iskeleti (modül bazlı `AddXxxModule()` extension'ları, her modül kendi Application assembly'sinden MediatR/FluentValidation kaydı yapıyor)
 
 ## Faz 2 — Identity & Auth Modülü
-- [ ] `User`, `Role`, `Permission`, `UserRole`, `UserWarehouse` entity'leri
-- [ ] EF Core migration (identity schema)
-- [ ] JWT issuing (access + refresh token)
-- [ ] Login / refresh endpoint
-- [ ] Role-based authorization policy'leri
-- [ ] Seed: Admin kullanıcı + 4 rol (Admin, DepoMüdürü, DepoSorumlusu, DepoPersoneli)
+- [x] `User`, `Role`, `UserRole`, `RefreshToken` entity'leri (Permission entity kapsam dışı bırakıldı — rol bazlı yetkilendirme yeterli; `UserWarehouse` Faz 4'e ertelendi, bkz. CLAUDE.md §5)
+- [x] EF Core migration (identity schema, snake_case naming convention)
+- [x] JWT issuing (access + refresh token, refresh token rotation)
+- [x] Login / refresh endpoint (`POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/me`)
+- [x] Role-based authorization policy'leri (JWT bearer + `[Authorize(Roles=...)]`, doğrulandı)
+- [x] Seed: Admin kullanıcı + 4 rol (Admin, DepoMüdürü, DepoSorumlusu, DepoPersoneli) — uygulama başlangıcında idempotent seed
 
 ## Faz 3 — Catalog Modülü
 - [ ] `Product`, `Category`, `UnitOfMeasure` entity'leri + migration

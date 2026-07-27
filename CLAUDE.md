@@ -21,6 +21,12 @@ MVP kapsamı: tek şirket, çoklu depo destekli bir **Depo Yönetim Sistemi**. �
 - **Veritabanı**: Tek PostgreSQL instance, modül başına ayrı **schema**: `identity`, `catalog`, `inventory`, `inbound`, `outbound`, `transfer`, `stockcount`. Yazma tarafı şema sınırını ihlal etmez. Dapper okuma/raporlama tarafı, raporlama ihtiyacı için şemalar arası join yapabilir (pragmatik istisna).
 - **Kimlik Doğrulama**: JWT Bearer (access + refresh token). **Rol bazlı yetkilendirme** (`[Authorize(Roles = "...")]` / policy-based).
 
+### EF Core Kuralları
+
+- **Tüm entity Id'leri client-side üretilir** (`Guid.CreateVersion7()`, bkz. `BaseEntity`), veritabanı tarafından değil. Bu nedenle her entity konfigürasyonunda **`builder.Property(x => x.Id).ValueGeneratedNever();` zorunludur**. Aksi halde EF Core, zaten set edilmiş (default olmayan) bir Guid değeriyle collection-fixup üzerinden (örn. `aggregate.Children.Add(yeni)`) eklenen yeni bir child entity'yi "Modified" sanıp UPDATE atmaya çalışır, bu da 0 satır etkilenen `DbUpdateConcurrencyException` ile sonuçlanır (Identity modülünde `RefreshToken` eklerken tam olarak bu hatayla karşılaşıldı). Her yeni entity konfigürasyonunda bu satırı eklemeyi unutma.
+- **Naming convention**: `EFCore.NamingConventions` paketi + `options.UseSnakeCaseNamingConvention()` ile tüm tablo/kolon adları otomatik snake_case (Postgres konvansiyonu). Manuel `HasColumnName` gerekmez.
+- **Optimistic Concurrency**: Aynı satırda **eşzamanlı yarış durumu olabilecek** her yerde optimistic concurrency token kullanılacak — özellikle stok miktarını değiştiren tüm akışlarda (Inbound onayı, Outbound onayı, Transfer gönder/teslim al, StockCount düzeltme onayı → hepsi `Inventory` modülündeki `StockItem.Quantity`'yi günceller). Postgres'in `xmin` sistem kolonu concurrency token olarak kullanılacak (Npgsql.EntityFrameworkCore.PostgreSQL'in `.UseXminAsConcurrencyToken()` extension'ı ile, her entity konfigürasyonunda tek satır). Çakışma durumunda handler `DbUpdateConcurrencyException`'ı yakalayıp `Error.Conflict(...)` içeren bir `Result` döner — asla kullanıcıya çıplak 500 olarak yansımaz. Bu kural Faz 4 (Inventory modülü) implementasyonunda uygulanacak; salt referans/seed veri (Role gibi) veya tek kullanıcı tarafından değiştirilen kayıtlarda gerekmez.
+
 ### Backend Proje Yapısı
 
 ```
@@ -133,7 +139,7 @@ Naming: API hook'ları `use{Verb}{Resource}` (örn. `useCreateProduct`, `useProd
 
 ## 5. Entity / Tablo Taslağı (MVP)
 
-- **Identity şeması**: `User`, `Role`, `Permission`, `UserRole`, `UserWarehouse` (kullanıcı-depo ataması)
+- **Identity şeması**: `User`, `Role`, `UserRole`, `RefreshToken`. **Not**: MVP'de ayrı bir `Permission` entity'si yok — yetkilendirme tamamen rol bazlı (`[Authorize(Roles=...)]`), 4 rol sabit seed data (`RoleNames`/`RoleIds`/`RoleCatalog` sınıfları). `UserWarehouse` (kullanıcı-depo ataması) Faz 4'e (Inventory modülü, `Warehouse` entity'si var olduğunda) ertelendi.
 - **Catalog şeması**: `Product` (SKU, ad, birim, min stok), `Category`, `UnitOfMeasure`
 - **Inventory şeması**: `Warehouse`, `StockItem` (WarehouseId + ProductId + Quantity), `StockMovement` (tüm stok değişimlerinin audit ledger'ı)
 - **Inbound şeması**: `GoodsReceipt` (Depo, Tarih, Durum, OluşturanKullanıcı), `GoodsReceiptLine` (Ürün, Miktar)
