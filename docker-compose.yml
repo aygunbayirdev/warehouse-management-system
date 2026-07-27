@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: wms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wms}
+      POSTGRES_USER: ${POSTGRES_USER:-wms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wms_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - wms-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wms_user} -d ${POSTGRES_DB:-wms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # backend:
+  #   build: ./backend
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   ports:
+  #     - "${BACKEND_PORT:-5000}:8080"
+  #   environment:
+  #     ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-wms};Username=${POSTGRES_USER:-wms_user};Password=${POSTGRES_PASSWORD:-wms_password}"
+  #     Jwt__Secret: ${JWT_SECRET}
+  #
+  # frontend:
+  #   build: ./frontend
+  #   depends_on:
+  #     - backend
+  #   ports:
+  #     - "${FRONTEND_PORT:-3000}:80"
+  #   environment:
+  #     VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000}
+
+volumes:
+  wms-postgres-data:
