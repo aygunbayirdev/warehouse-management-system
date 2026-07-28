@@ -41,6 +41,7 @@ public static class InventoryModule
         services.AddScoped<IStockItemWriteRepository, StockItemWriteRepository>();
         services.AddScoped<IStockMovementWriteRepository, StockMovementWriteRepository>();
         services.AddScoped<IStockItemReadRepository, StockItemReadRepository>();
+        services.AddScoped<IStockMovementReadRepository, StockMovementReadRepository>();
 
         return services;
     }

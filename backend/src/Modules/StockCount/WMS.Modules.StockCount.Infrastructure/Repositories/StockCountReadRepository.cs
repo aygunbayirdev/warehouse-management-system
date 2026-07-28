@@ -74,6 +74,53 @@ internal sealed class StockCountReadRepository(ISqlConnectionFactory connectionF
             .ToList();
     }
 
+    public async Task<IReadOnlyCollection<StockCountVarianceReportRowDto>> GetVarianceReportAsync(
+        Guid? warehouseId,
+        DateTime? fromUtc,
+        DateTime? toUtc,
+        CancellationToken cancellationToken)
+    {
+        var sql = new StringBuilder("""
+            SELECT sc.id AS "StockCountId", sc.warehouse_id AS "WarehouseId", w.name AS "WarehouseName",
+                   scl.product_id AS "ProductId", p.sku AS "ProductSku", p.name AS "ProductName",
+                   scl.system_quantity AS "SystemQuantity", scl.counted_quantity AS "CountedQuantity",
+                   scl.difference AS "Difference", sc.closed_at_utc AS "ClosedAtUtc"
+            FROM stockcount.stock_counts sc
+            INNER JOIN stockcount.stock_count_lines scl ON scl.stock_count_id = sc.id
+            INNER JOIN inventory.warehouses w ON w.id = sc.warehouse_id
+            INNER JOIN catalog.products p ON p.id = scl.product_id
+            WHERE sc.status = 'Completed' AND scl.difference <> 0
+            """);
+        var parameters = new DynamicParameters();
+
+        if (warehouseId is not null)
+        {
+            sql.Append(" AND sc.warehouse_id = @WarehouseId");
+            parameters.Add("WarehouseId", warehouseId);
+        }
+
+        if (fromUtc is not null)
+        {
+            sql.Append(" AND sc.closed_at_utc >= @FromUtc");
+            parameters.Add("FromUtc", fromUtc);
+        }
+
+        if (toUtc is not null)
+        {
+            sql.Append(" AND sc.closed_at_utc <= @ToUtc");
+            parameters.Add("ToUtc", toUtc);
+        }
+
+        sql.Append(" ORDER BY sc.closed_at_utc DESC");
+
+        using var connection = connectionFactory.CreateConnection();
+        var command = new CommandDefinition(sql.ToString(), parameters, cancellationToken: cancellationToken);
+
+        var rows = await connection.QueryAsync<StockCountVarianceReportRowDto>(command);
+
+        return rows.ToList();
+    }
+
     private static StockCountDto MapToDto(IReadOnlyCollection<StockCountRow> rows)
     {
         var first = rows.First();

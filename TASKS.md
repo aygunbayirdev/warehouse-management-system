@@ -67,9 +67,9 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] `WMS.Modules.StockCount` modül namespace'i ile aggregate root sınıfı `StockCount` aynı ada sahip olduğu için (`WMS.Modules.StockCount.Domain.StockCount`), `using WMS.Modules.StockCount.Domain;` + çıplak `StockCount` kullanımı C# derleyicisinde CS0118 ("ad alanı öğesi tür olarak kullanılıyor") hatası veriyor — çünkü isim çözümleme, `WMS.Modules` seviyesinde `StockCount` adlı bir alt ad alanını (modülün kendisini) tür aramasından önce buluyor. Çözüm: bu sınıfa referans veren her dosyada `using StockCountAggregate = WMS.Modules.StockCount.Domain.StockCount;` alias'ı kullanılıyor (bkz. `IStockCountWriteRepository`, `StockCountWriteRepository`, `StockCountDbContext`, `StockCountConfiguration`, `CreateStockCountCommandHandler`). Modül adı ile o modüldeki bir aggregate root'un adı birebir aynı olursa bu kalıp tekrar gerekir.
 
 ## Faz 9 — Raporlama
-- [ ] Depo bazlı güncel stok raporu (Dapper)
-- [ ] Stok hareket geçmişi (ledger) raporu (Dapper)
-- [ ] Sayım fark raporu (Dapper)
+- [x] Depo bazlı güncel stok raporu (Dapper) — Faz 4'te `GetStockItemsQuery` / `GET /api/stock` ile zaten mevcuttu, ayrı bir Reports modülü yok (mimaride 7 modül dışında raporlama modülü tanımlanmadı) — her rapor ilgili modülün Dapper read-repository'sine ekleniyor
+- [x] Stok hareket geçmişi (ledger) raporu (Dapper) — Inventory modülünde yeni `GetStockMovementsQuery`/`IStockMovementReadRepository`/`StockMovementReadRepository`, `inventory.stock_movements` tablosunu `catalog.products`/`inventory.warehouses` ile join'liyor, depo/ürün/tarih aralığı filtreli, `GET /api/stock/movements`; Inbound/Outbound/Transfer/StockCount'un ürettiği tüm `StockMovement` kayıtları tek ledger'da görünüyor — uçtan uca doğrulandı
+- [x] Sayım fark raporu (Dapper) — StockCount modülünde yeni `GetStockCountVarianceReportQuery`, `IStockCountReadRepository.GetVarianceReportAsync`, sadece Completed sayımların farkı sıfır olmayan satırlarını depo/tarih aralığı filtreli döndürüyor, `GET /api/stock-counts/variance-report`; rapor, düzeltmenin onay/red durumundan bağımsız olarak sayımda tespit edilen farkı gösteriyor — uçtan uca doğrulandı
 
 ## Faz 10 — Frontend İskelet
 - [ ] Vite + React + TS scaffold

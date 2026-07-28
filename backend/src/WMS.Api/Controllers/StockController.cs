@@ -29,6 +29,19 @@ public sealed class StockController(ISender sender) : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("movements")]
+    public async Task<IActionResult> GetStockMovements(
+        [FromQuery] Guid? warehouseId,
+        [FromQuery] Guid? productId,
+        [FromQuery] DateTime? fromUtc,
+        [FromQuery] DateTime? toUtc,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetStockMovementsQuery(warehouseId, productId, fromUtc, toUtc), cancellationToken);
+
+        return result.ToActionResult();
+    }
+
     [HttpPost("increase")]
     [Authorize(Roles = RoleNames.Admin)]
     public async Task<IActionResult> Increase(IncreaseStockCommand command, CancellationToken cancellationToken)

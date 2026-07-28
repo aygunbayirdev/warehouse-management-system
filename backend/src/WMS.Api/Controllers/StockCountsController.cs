@@ -26,6 +26,18 @@ public sealed class StockCountsController(ISender sender) : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("variance-report")]
+    public async Task<IActionResult> GetVarianceReport(
+        [FromQuery] Guid? warehouseId,
+        [FromQuery] DateTime? fromUtc,
+        [FromQuery] DateTime? toUtc,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetStockCountVarianceReportQuery(warehouseId, fromUtc, toUtc), cancellationToken);
+
+        return result.ToActionResult();
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {

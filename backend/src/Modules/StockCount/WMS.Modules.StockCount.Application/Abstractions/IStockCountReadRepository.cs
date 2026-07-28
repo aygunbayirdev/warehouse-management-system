@@ -11,4 +11,10 @@ public interface IStockCountReadRepository
         Guid? warehouseId,
         StockCountStatus? status,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyCollection<StockCountVarianceReportRowDto>> GetVarianceReportAsync(
+        Guid? warehouseId,
+        DateTime? fromUtc,
+        DateTime? toUtc,
+        CancellationToken cancellationToken);
 }
