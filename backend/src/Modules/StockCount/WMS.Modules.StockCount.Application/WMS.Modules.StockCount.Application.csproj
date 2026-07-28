@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\WMS.Modules.StockCount.Domain\WMS.Modules.StockCount.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\WMS.BuildingBlocks.Application\WMS.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\Inventory\WMS.Modules.Inventory.Application\WMS.Modules.Inventory.Application.csproj" />
+    <ProjectReference Include="..\..\Catalog\WMS.Modules.Catalog.Application\WMS.Modules.Catalog.Application.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

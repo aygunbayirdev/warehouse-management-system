@@ -61,6 +61,8 @@ backend/
 
 Her modül aynı üçlü yapıya sahiptir: `Domain` (entity, value object, domain event, enum), `Application` (Command/Query/Handler/DTO/Validator, repository arayüzleri), `Infrastructure` (EF Core DbContext + migration, EF write-repository implementasyonu, Dapper read-repository implementasyonu).
 
+**C# namespace/tür adı çakışması**: Bir modülün namespace'i (`WMS.Modules.{Module}`) ile o modüldeki bir aggregate root'un adı birebir aynı olursa (StockCount modülünde olduğu gibi: `WMS.Modules.StockCount` namespace'i ve `WMS.Modules.StockCount.Domain.StockCount` sınıfı), `using WMS.Modules.StockCount.Domain;` + çıplak `StockCount` kullanımı CS0118 hatası verir — çünkü C#'ın isim çözümleme sırası, dıştaki ad alanlarında (burada `WMS.Modules` seviyesinde) aynı adlı bir alt-namespace bulduğunda, henüz `using` ile içe aktarılan türe bakmadan orada durur. Çözüm: o sınıfa referans veren her dosyada `using StockCountAggregate = WMS.Modules.StockCount.Domain.StockCount;` gibi bir alias kullan. Yeni bir modül eklerken modül adını doğrudan bir aggregate root adı olarak seçme; seçmek zorundaysan bu alias kalıbını uygula.
+
 ---
 
 ## 2. Naming Standardı — TEK STANDART, HER YERDE AYNI
