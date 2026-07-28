@@ -1,27 +1,12 @@
-import { AxiosError } from 'axios'
 import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getApiErrorMessage } from '@/lib/errors'
 
 import { useLogin } from './api/useLogin'
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof AxiosError) {
-    const detail = (error.response?.data as { detail?: string } | undefined)
-      ?.detail
-    if (error.response?.status === 401) {
-      return 'E-posta veya şifre hatalı.'
-    }
-    if (detail) {
-      return detail
-    }
-  }
-
-  return 'Giriş yapılamadı. Lütfen tekrar deneyin.'
-}
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -71,7 +56,10 @@ export function LoginPage() {
 
         {loginMutation.isError && (
           <p className="text-sm text-destructive">
-            {getErrorMessage(loginMutation.error)}
+            {getApiErrorMessage(
+              loginMutation.error,
+              'Giriş yapılamadı. Lütfen tekrar deneyin.',
+            )}
           </p>
         )}
 
