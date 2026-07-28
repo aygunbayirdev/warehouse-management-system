@@ -48,9 +48,10 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] Uçtan uca doğrulandı: taslak oluşturma → onay → Inventory'de stok artışı ve `StockMovement` kaydı, çift onay/geçersiz ürün/depo/rol koruması dahil
 
 ## Faz 6 — Outbound Modülü (Sevkiyat / Mal Çıkışı)
-- [ ] `GoodsIssue`, `GoodsIssueLine` entity'leri + migration
-- [ ] Oluşturma (stok yeterlilik kontrolü) + onaylama command'ları
-- [ ] `GoodsIssueApprovedDomainEvent` → Inventory güncelleme handler'ı
+- [x] `GoodsIssue`, `GoodsIssueLine` entity'leri + migration (outbound schema, snake_case; Status: Draft/Approved)
+- [x] Oluşturma (WarehouseId/ProductId varlığı Inventory/Catalog'un query'leri ile doğrulanıyor; stok yeterlilik kontrolü `GetStockItemsQuery` ile satır bazında oluşturma anında yapılıyor — onay sonrası domain event handler'ın sessizce loglayıp geçmesi riskine karşı erken geri bildirim) + onaylama command'ları (`CreateGoodsIssueCommand`, `ApproveGoodsIssueCommand`; onay DepoSorumlusu/DepoMüdürü/Admin'e açık)
+- [x] `GoodsIssueApprovedDomainEvent` → Inventory güncelleme handler'ı (`GoodsIssueApprovedDomainEventHandler`, Outbound modülünde yaşıyor, Inventory'nin `DecreaseStockCommand`'ını `ISender` ile çağırıyor — Faz 5'te kurulan modüller arası çağrı kalıbının ikinci uygulaması)
+- [x] Uçtan uca doğrulandı: yetersiz stokta 409, taslak oluşturma → onay → Inventory'de stok azalışı, çift onay/geçersiz ürün/depo/eksik satır/401 koruması dahil
 
 ## Faz 7 — Transfer Modülü (Depolar Arası)
 - [ ] `StockTransfer`, `StockTransferLine` entity'leri + migration
