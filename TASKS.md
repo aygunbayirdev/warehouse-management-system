@@ -54,8 +54,10 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] Uçtan uca doğrulandı: yetersiz stokta 409, taslak oluşturma → onay → Inventory'de stok azalışı, çift onay/geçersiz ürün/depo/eksik satır/401 koruması dahil
 
 ## Faz 7 — Transfer Modülü (Depolar Arası)
-- [ ] `StockTransfer`, `StockTransferLine` entity'leri + migration
-- [ ] Oluşturma + gönderme (`StockTransferShippedDomainEvent`) + teslim alma (`StockTransferReceivedDomainEvent`) command'ları
+- [x] `StockTransfer`, `StockTransferLine` entity'leri + migration (transfer schema, snake_case; Status: Draft/Shipped/Received/Cancelled — Cancelled MVP'de bir command ile tetiklenmiyor, ileride kullanılmak üzere şema seviyesinde ayrılmış durumda)
+- [x] Oluşturma (Kaynak/Hedef depo aynı olamaz, WarehouseId/ProductId varlığı Inventory/Catalog'un query'leri ile doğrulanıyor) + gönderme (`ShipStockTransferCommand`; stok yeterlilik kontrolü `GetStockItemsQuery` ile gönderme anında yapılıyor — Outbound'daki yaklaşımla aynı gerekçe, `StockTransferShippedDomainEvent`) + teslim alma (`ReceiveStockTransferCommand`, `StockTransferReceivedDomainEvent`) command'ları; gönderme/teslim alma DepoSorumlusu/DepoMüdürü/Admin'e açık
+- [x] `StockTransferShippedDomainEventHandler` (Inventory'nin `DecreaseStockCommand`'ını kaynak depo için çağırıyor) ve `StockTransferReceivedDomainEventHandler` (Inventory'nin `IncreaseStockCommand`'ını hedef depo için çağırıyor) — ikisi de Transfer modülünde yaşıyor, Faz 5/6'da kurulan modüller arası çağrı kalıbının üçüncü ve dördüncü uygulaması
+- [x] Uçtan uca doğrulandı: aynı depo validasyonu, gönderim anında yetersiz stokta 409, taslak → gönder (kaynak stok azalır) → teslim al (hedef stok artar), teslim almadan önce gönderilmemiş transferin reddedilmesi, çift gönderme/çift teslim alma/geçersiz depo/boş satır/401 koruması dahil
 
 ## Faz 8 — StockCount Modülü (Sayım + Düzeltme)
 - [ ] `StockCount`, `StockCountLine`, `StockCountAdjustment` entity'leri + migration
