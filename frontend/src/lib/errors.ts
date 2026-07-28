@@ -4,6 +4,7 @@ const KNOWN_ERROR_MESSAGES: Record<string, string> = {
   'Category.InUse': 'Bu kategori en az bir üründe kullanılıyor, silinemez.',
   'UnitOfMeasure.InUse': 'Bu birim en az bir üründe kullanılıyor, silinemez.',
   'Warehouse.InUse': 'Bu deponun stok kayıtları var, silinemez.',
+  'GoodsIssue.InsufficientStock': 'Seçilen depoda bu ürün için yeterli stok yok.',
   'Auth.InvalidCredentials': 'E-posta veya şifre hatalı.',
 }
 

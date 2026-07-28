@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/units-of-measure', label: 'Birimler' },
   { to: '/warehouses', label: 'Depolar' },
   { to: '/goods-receipts', label: 'Mal Kabul' },
+  { to: '/goods-issues', label: 'Sevkiyat' },
 ]
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {

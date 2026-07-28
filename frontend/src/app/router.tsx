@@ -4,6 +4,8 @@ import { LoginPage } from '@/features/auth/LoginPage'
 import { RoleNames } from '@/features/auth/types'
 import { GoodsReceiptsPage } from '@/features/inbound/GoodsReceiptsPage'
 import { NewGoodsReceiptPage } from '@/features/inbound/NewGoodsReceiptPage'
+import { GoodsIssuesPage } from '@/features/outbound/GoodsIssuesPage'
+import { NewGoodsIssuePage } from '@/features/outbound/NewGoodsIssuePage'
 import { CategoriesPage } from '@/features/products/CategoriesPage'
 import { ProductsPage } from '@/features/products/ProductsPage'
 import { UnitsOfMeasurePage } from '@/features/products/UnitsOfMeasurePage'
@@ -33,6 +35,8 @@ export const router = createBrowserRouter([
           { path: '/warehouses', element: <WarehousesPage /> },
           { path: '/goods-receipts', element: <GoodsReceiptsPage /> },
           { path: '/goods-receipts/new', element: <NewGoodsReceiptPage /> },
+          { path: '/goods-issues', element: <GoodsIssuesPage /> },
+          { path: '/goods-issues/new', element: <NewGoodsIssuePage /> },
           {
             path: '/admin',
             element: (
