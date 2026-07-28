@@ -82,10 +82,12 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] Uçtan uca doğrulandı: `dotnet build`, `npm run build`, `npm run test` (4/4 yeşil), dev server'da `/`→`/login` redirect, tema toggle `<html class="dark">` değişimi, gerçek backend'e karşı CORS hatasız cross-origin istek ve `admin@wms.local` ile login'in geçerli JWT (`role` claim'i dahil) döndürmesi
 
 ## Faz 11 — Frontend Auth
-- [ ] Login sayfası
-- [ ] Token saklama + refresh akışı
-- [ ] Route guard (rol bazlı)
-- [ ] Rol bazlı UI gizleme/gösterme
+- [x] Login sayfası (`features/auth/LoginPage.tsx`): controlled email/password formu, `useLogin()` mutation'ı, backend `ProblemDetails` gövdesinden hata mesajı (401 için özel "E-posta veya şifre hatalı" metni)
+- [x] Token saklama + refresh akışı: `useAuthStore` artık **sadece** `accessToken`/`refreshToken` tutuyor (Faz10'daki `user`/`setUser` kaldırıldı — kullanıcı profili server state olduğu için CLAUDE.md §3'e uyarak `useCurrentUser()` TanStack Query hook'una taşındı, bkz. `features/auth/api/`); sayfa yenilemede oturum `GET /auth/me`'nin otomatik tekrar çekilmesiyle korunuyor
+- [x] Route guard (rol bazlı): `RoleGuard` artık `useHasAnyRole()`'a dayanıyor (store yerine query cache), gerçek bir route'a (`/admin`, sadece `RoleNames.Admin`) uygulanarak uçtan uca doğrulandı
+- [x] Rol bazlı UI gizleme/gösterme: `DashboardPage` header'ında "Yönetim" linki sadece Admin rolünde görünüyor (`useHasAnyRole`)
+- [x] **Bug fix (uçtan uca testte bulundu):** `lib/axios.ts`'deki 401 response interceptor, `/auth/login`'in kendisinden dönen 401'i de "oturum süresi doldu" sanıp refresh deneyip `/login`'e tam sayfa yönlendirme yapıyordu — bu da LoginPage'in hata mesajını göstermeden state'i sıfırlıyordu. Düzeltme: `/auth/login` istekleri interceptor'da hariç tutuluyor, 401 doğrudan çağırana (mutation'a) düşüyor.
+- [x] Uçtan uca doğrulandı (gerçek backend + tarayıcı): doğru bilgilerle login → `/`'e yönlenme, header'da "System Admin" ve "Yönetim" linki, `/admin`'e erişim ve sayfa yenilemede oturumun korunması, **Çıkış Yap** → `/login`'e dönüş ve sonrasında `/admin`'e gidilmeye çalışılınca yeniden `/login`'e atılması, yanlış şifrede "E-posta veya şifre hatalı" mesajı (sayfa yeniden yüklenmeden)
 
 ## Faz 12 — Frontend Features
 - [ ] Ürünler (Catalog) ekranları

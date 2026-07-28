@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
-import { useAuthStore } from '@/features/auth/store'
+import { useCurrentUser } from '@/features/auth/api/useCurrentUser'
+import { useHasAnyRole } from '@/features/auth/api/useHasAnyRole'
 
 type RoleGuardProps = {
   allowedRoles: string[]
@@ -8,8 +9,16 @@ type RoleGuardProps = {
 }
 
 export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
-  const roles = useAuthStore((state) => state.user?.roles ?? [])
-  const isAllowed = roles.some((role) => allowedRoles.includes(role))
+  const { isLoading } = useCurrentUser()
+  const isAllowed = useHasAnyRole(allowedRoles)
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Yükleniyor...</p>
+      </div>
+    )
+  }
 
   if (!isAllowed) {
     return (

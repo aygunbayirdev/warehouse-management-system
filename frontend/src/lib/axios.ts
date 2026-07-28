@@ -46,8 +46,9 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as RetriableRequestConfig | undefined
     const status = error.response?.status
     const isRefreshCall = originalRequest?.url?.includes('/auth/refresh')
+    const isLoginCall = originalRequest?.url?.includes('/auth/login')
 
-    if (status !== 401 || !originalRequest) {
+    if (status !== 401 || !originalRequest || isLoginCall) {
       return Promise.reject(error)
     }
 
