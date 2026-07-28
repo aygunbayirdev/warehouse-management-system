@@ -80,6 +80,16 @@ try
 
     builder.Services.AddAuthorization();
 
+    var corsAllowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("Frontend", policy => policy
+            .WithOrigins(corsAllowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+    });
+
     var app = builder.Build();
 
     app.UseExceptionHandler();
@@ -90,6 +100,7 @@ try
     }
 
     app.UseHttpsRedirection();
+    app.UseCors("Frontend");
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();

@@ -72,12 +72,14 @@ Mimari/teknoloji/naming detayları için bkz. `CLAUDE.md`.
 - [x] Sayım fark raporu (Dapper) — StockCount modülünde yeni `GetStockCountVarianceReportQuery`, `IStockCountReadRepository.GetVarianceReportAsync`, sadece Completed sayımların farkı sıfır olmayan satırlarını depo/tarih aralığı filtreli döndürüyor, `GET /api/stock-counts/variance-report`; rapor, düzeltmenin onay/red durumundan bağımsız olarak sayımda tespit edilen farkı gösteriyor — uçtan uca doğrulandı
 
 ## Faz 10 — Frontend İskelet
-- [ ] Vite + React + TS scaffold
-- [ ] shadcn/ui init + Tailwind + dark mode toggle
-- [ ] Axios instance (interceptor: JWT header, 401 refresh/redirect)
-- [ ] TanStack Query provider
-- [ ] Zustand store iskeleti
-- [ ] Router + korumalı route yapısı
+- [x] Vite + React + TS scaffold (`frontend/`, Vite 8 + React 19 + TS 6, `oxlint`)
+- [x] shadcn/ui init (Base UI + Nova preset) + Tailwind CSS v4 (`@tailwindcss/vite`) + dark mode toggle (`ThemeProvider` + `ThemeToggle`, `localStorage` + `prefers-color-scheme`, `<html class="dark">` üzerinden Tailwind `dark:` varyantı)
+- [x] Axios instance (`lib/axios.ts`): request interceptor JWT header ekliyor (`attachAuthHeader`), response interceptor 401'de `/auth/refresh` deniyor, başarısız olursa store'u temizleyip `/login`'e yönlendiriyor
+- [x] TanStack Query provider (`lib/query-client.ts`, `app/App.tsx`)
+- [x] Zustand store iskeleti (`features/auth/store.ts`, `persist` middleware ile `localStorage`)
+- [x] Router + korumalı route yapısı (`app/router.tsx`, `app/routes/ProtectedRoute.tsx`, `app/routes/RoleGuard.tsx`) — gerçek login ekranı ve özellik sayfaları henüz yok (Faz 11/12), `/login` ve `/` şimdilik placeholder
+- [x] Backend ön koşulu: CORS policy eklendi (`Program.cs`/`appsettings.json` → `Cors:AllowedOrigins`, dev origin `http://localhost:5173`) — backend'de daha önce hiç CORS yapılandırması yoktu
+- [x] Uçtan uca doğrulandı: `dotnet build`, `npm run build`, `npm run test` (4/4 yeşil), dev server'da `/`→`/login` redirect, tema toggle `<html class="dark">` değişimi, gerçek backend'e karşı CORS hatasız cross-origin istek ve `admin@wms.local` ile login'in geçerli JWT (`role` claim'i dahil) döndürmesi
 
 ## Faz 11 — Frontend Auth
 - [ ] Login sayfası
