@@ -2,6 +2,8 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RoleNames } from '@/features/auth/types'
+import { GoodsReceiptsPage } from '@/features/inbound/GoodsReceiptsPage'
+import { NewGoodsReceiptPage } from '@/features/inbound/NewGoodsReceiptPage'
 import { CategoriesPage } from '@/features/products/CategoriesPage'
 import { ProductsPage } from '@/features/products/ProductsPage'
 import { UnitsOfMeasurePage } from '@/features/products/UnitsOfMeasurePage'
@@ -29,6 +31,8 @@ export const router = createBrowserRouter([
           { path: '/categories', element: <CategoriesPage /> },
           { path: '/units-of-measure', element: <UnitsOfMeasurePage /> },
           { path: '/warehouses', element: <WarehousesPage /> },
+          { path: '/goods-receipts', element: <GoodsReceiptsPage /> },
+          { path: '/goods-receipts/new', element: <NewGoodsReceiptPage /> },
           {
             path: '/admin',
             element: (
