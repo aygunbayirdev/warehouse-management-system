@@ -21,6 +21,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/warehouses', label: 'Depolar' },
   { to: '/goods-receipts', label: 'Mal Kabul' },
   { to: '/goods-issues', label: 'Sevkiyat' },
+  { to: '/stock-transfers', label: 'Transfer' },
 ]
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {

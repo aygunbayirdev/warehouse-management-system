@@ -9,6 +9,8 @@ import { NewGoodsIssuePage } from '@/features/outbound/NewGoodsIssuePage'
 import { CategoriesPage } from '@/features/products/CategoriesPage'
 import { ProductsPage } from '@/features/products/ProductsPage'
 import { UnitsOfMeasurePage } from '@/features/products/UnitsOfMeasurePage'
+import { NewStockTransferPage } from '@/features/transfer/NewStockTransferPage'
+import { StockTransfersPage } from '@/features/transfer/StockTransfersPage'
 import { WarehousesPage } from '@/features/warehouses/WarehousesPage'
 
 import { AppLayout } from './layout/AppLayout'
@@ -37,6 +39,8 @@ export const router = createBrowserRouter([
           { path: '/goods-receipts/new', element: <NewGoodsReceiptPage /> },
           { path: '/goods-issues', element: <GoodsIssuesPage /> },
           { path: '/goods-issues/new', element: <NewGoodsIssuePage /> },
+          { path: '/stock-transfers', element: <StockTransfersPage /> },
+          { path: '/stock-transfers/new', element: <NewStockTransferPage /> },
           {
             path: '/admin',
             element: (

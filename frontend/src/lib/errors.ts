@@ -5,6 +5,8 @@ const KNOWN_ERROR_MESSAGES: Record<string, string> = {
   'UnitOfMeasure.InUse': 'Bu birim en az bir üründe kullanılıyor, silinemez.',
   'Warehouse.InUse': 'Bu deponun stok kayıtları var, silinemez.',
   'GoodsIssue.InsufficientStock': 'Seçilen depoda bu ürün için yeterli stok yok.',
+  'StockTransfer.SameWarehouse': 'Kaynak ve hedef depo aynı olamaz.',
+  'StockTransfer.InsufficientStock': 'Kaynak depoda bu ürün için yeterli stok yok.',
   'Auth.InvalidCredentials': 'E-posta veya şifre hatalı.',
 }
 
