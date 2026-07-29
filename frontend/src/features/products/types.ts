@@ -27,6 +27,8 @@ export type UpdateProductPayload = {
 export type ProductFilters = {
   categoryId?: string
   search?: string
+  page: number
+  pageSize: number
 }
 
 export type CategoryDto = {

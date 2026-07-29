@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { apiClient } from '@/lib/axios'
+import type { PagedResult } from '@/lib/pagination'
 
 import type {
   CreateProductPayload,
@@ -13,9 +14,10 @@ export function useProducts(filters: ProductFilters) {
   return useQuery({
     queryKey: ['products', filters],
     queryFn: async () => {
-      const response = await apiClient.get<ProductDto[]>('/products', {
-        params: filters,
-      })
+      const response = await apiClient.get<PagedResult<ProductDto>>(
+        '/products',
+        { params: filters },
+      )
       return response.data
     },
   })

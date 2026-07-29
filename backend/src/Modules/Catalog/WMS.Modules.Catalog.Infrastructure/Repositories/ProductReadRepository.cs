@@ -1,5 +1,6 @@
 using System.Text;
 using Dapper;
+using WMS.BuildingBlocks.Application.Models;
 using WMS.BuildingBlocks.Infrastructure.Persistence;
 using WMS.Modules.Catalog.Application.Abstractions;
 using WMS.Modules.Catalog.Application.Dtos;
@@ -28,36 +29,46 @@ internal sealed class ProductReadRepository(ISqlConnectionFactory connectionFact
         return await connection.QueryFirstOrDefaultAsync<ProductDto>(command);
     }
 
-    public async Task<IReadOnlyCollection<ProductDto>> GetListAsync(
+    public async Task<PagedResult<ProductDto>> GetListAsync(
         Guid? categoryId,
         string? search,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken)
     {
-        var sql = new StringBuilder(BaseSql);
+        var whereClause = new StringBuilder();
         var parameters = new DynamicParameters();
         var hasWhere = false;
 
         if (categoryId is not null)
         {
-            sql.Append(" WHERE p.category_id = @CategoryId");
+            whereClause.Append(" WHERE p.category_id = @CategoryId");
             parameters.Add("CategoryId", categoryId);
             hasWhere = true;
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("(p.name ILIKE @Search OR p.sku ILIKE @Search)");
+            whereClause.Append(hasWhere ? " AND " : " WHERE ");
+            whereClause.Append("(p.name ILIKE @Search OR p.sku ILIKE @Search)");
             parameters.Add("Search", $"%{search.Trim()}%");
         }
 
-        sql.Append(" ORDER BY p.name");
+        parameters.Add("PageSize", pageSize);
+        parameters.Add("Skip", (page - 1) * pageSize);
+
+        var sql = $"""
+            SELECT COUNT(*) FROM catalog.products p{whereClause};
+            {BaseSql}{whereClause} ORDER BY p.name LIMIT @PageSize OFFSET @Skip;
+            """;
 
         using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition(sql.ToString(), parameters, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, parameters, cancellationToken: cancellationToken);
 
-        var result = await connection.QueryAsync<ProductDto>(command);
+        await using var multi = await connection.QueryMultipleAsync(command);
+        var totalCount = await multi.ReadSingleAsync<int>();
+        var items = (await multi.ReadAsync<ProductDto>()).ToList();
 
-        return result.ToList();
+        return new PagedResult<ProductDto>(items, totalCount, page, pageSize);
     }
 }

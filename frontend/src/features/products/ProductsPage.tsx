@@ -51,19 +51,26 @@ import { useUnitsOfMeasure } from './api/unitsOfMeasure'
 import type { ProductDto } from './types'
 
 const NO_CATEGORY_VALUE = 'none'
+const PAGE_SIZE = 20
 
 export function ProductsPage() {
   const canManage = useHasAnyRole([RoleNames.Admin, RoleNames.WarehouseManager])
 
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>()
+  const [page, setPage] = useState(1)
   const debouncedSearch = useDebouncedValue(search)
 
   const { data: categories } = useCategories()
-  const { data: products, isLoading } = useProducts({
+  const { data, isLoading } = useProducts({
     search: debouncedSearch || undefined,
     categoryId: categoryFilter,
+    page,
+    pageSize: PAGE_SIZE,
   })
+  const products = data?.items
+  const totalCount = data?.totalCount ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   const categoryFilterItems = useMemo(
     () => ({
@@ -108,17 +115,21 @@ export function ProductsPage() {
         <Input
           placeholder="SKU veya ad ile ara..."
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
           className="max-w-xs"
         />
         <Select
           items={categoryFilterItems}
           value={categoryFilter ?? NO_CATEGORY_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setCategoryFilter(
               !value || value === NO_CATEGORY_VALUE ? undefined : value,
             )
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Tüm kategoriler" />
@@ -184,6 +195,35 @@ export function ProductsPage() {
           ))}
         </TableBody>
       </Table>
+
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          {totalCount === 0
+            ? 'Kayıt yok'
+            : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, totalCount)} / ${totalCount}`}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((current) => current - 1)}
+          >
+            Önceki
+          </Button>
+          <span>
+            Sayfa {page} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() => setPage((current) => current + 1)}
+          >
+            Sonraki
+          </Button>
+        </div>
+      </div>
 
       <ProductFormDialog
         key={editingProduct?.id ?? 'new'}

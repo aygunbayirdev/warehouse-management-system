@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useProducts } from '@/features/products/api/products'
+import { ProductLookupDialog } from '@/features/products/ProductLookupDialog'
 import { useWarehouses } from '@/features/warehouses/api/warehouses'
 import { getApiErrorMessage } from '@/lib/errors'
 
@@ -22,21 +22,22 @@ import { useCreateGoodsReceipt } from './api/goodsReceipts'
 type LineState = {
   key: string
   productId: string
+  productLabel: string
   quantity: string
 }
 
 function createEmptyLine(): LineState {
-  return { key: crypto.randomUUID(), productId: '', quantity: '' }
+  return { key: crypto.randomUUID(), productId: '', productLabel: '', quantity: '' }
 }
 
 export function NewGoodsReceiptPage() {
   const navigate = useNavigate()
   const { data: warehouses } = useWarehouses()
-  const { data: products } = useProducts({})
   const createGoodsReceipt = useCreateGoodsReceipt()
 
   const [warehouseId, setWarehouseId] = useState('')
   const [lines, setLines] = useState<LineState[]>([createEmptyLine()])
+  const [pickingLineKey, setPickingLineKey] = useState<string | null>(null)
 
   const warehouseItems = useMemo(
     () =>
@@ -44,16 +45,6 @@ export function NewGoodsReceiptPage() {
         (warehouses ?? []).map((warehouse) => [warehouse.id, warehouse.name]),
       ),
     [warehouses],
-  )
-  const productItems = useMemo(
-    () =>
-      Object.fromEntries(
-        (products ?? []).map((product) => [
-          product.id,
-          `${product.name} (${product.sku})`,
-        ]),
-      ),
-    [products],
   )
 
   function updateLine(key: string, patch: Partial<LineState>) {
@@ -127,26 +118,14 @@ export function NewGoodsReceiptPage() {
           <Label>Satırlar</Label>
           {lines.map((line) => (
             <div key={line.key} className="flex items-center gap-2">
-              <div className="flex-1">
-                <Select
-                  items={productItems}
-                  value={line.productId}
-                  onValueChange={(value: string | null) =>
-                    updateLine(line.key, { productId: value ?? '' })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Ürün seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products?.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} ({product.sku})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 justify-start font-normal"
+                onClick={() => setPickingLineKey(line.key)}
+              >
+                {line.productLabel || 'Ürün seçin'}
+              </Button>
               <Input
                 type="number"
                 min={0.01}
@@ -197,6 +176,21 @@ export function NewGoodsReceiptPage() {
           </Button>
         </div>
       </form>
+
+      <ProductLookupDialog
+        open={pickingLineKey !== null}
+        onOpenChange={(open) => {
+          if (!open) setPickingLineKey(null)
+        }}
+        onSelect={(product) => {
+          if (pickingLineKey) {
+            updateLine(pickingLineKey, {
+              productId: product.id,
+              productLabel: `${product.name} (${product.sku})`,
+            })
+          }
+        }}
+      />
     </div>
   )
 }

@@ -18,9 +18,11 @@ public sealed class ProductsController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetProducts(
         [FromQuery] Guid? categoryId,
         [FromQuery] string? search,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var result = await sender.Send(new GetProductsQuery(categoryId, search), cancellationToken);
+        var result = await sender.Send(new GetProductsQuery(categoryId, search, page, pageSize), cancellationToken);
 
         return result.ToActionResult();
     }
