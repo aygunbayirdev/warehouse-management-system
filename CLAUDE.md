@@ -112,24 +112,39 @@ Her modül aynı üçlü yapıya sahiptir: `Domain` (entity, value object, domai
 ```
 frontend/
   src/
-    app/                # Router, providers (QueryClient, ThemeProvider), layout
+    app/
+      App.tsx             # ThemeProvider + QueryClientProvider + RouterProvider + Toaster
+      router.tsx          # createBrowserRouter — ProtectedRoute > AppLayout > sayfalar
+      layout/AppLayout.tsx # sol nav + header (kullanıcı adı, tema, çıkış)
+      providers/          # ThemeProvider
+      routes/             # ProtectedRoute, RoleGuard — sayfa değil, route yardımcıları
     features/
       auth/
-      products/
+      products/            # Product + Category + UnitOfMeasure (Catalog modülüyle birebir) + ProductLookupDialog
       warehouses/
-      inbound/
-      outbound/
-      transfers/
+      inbound/             # Mal Kabul (GoodsReceipt)
+      outbound/            # Sevkiyat (GoodsIssue)
+      transfer/            # Depolar arası transfer (StockTransfer)
       stock-count/
       reports/
-      # her feature: api/ (axios çağrıları + query hooks), components/, types.ts, store.ts (varsa)
-    components/ui/      # shadcn bileşenleri
-    lib/                 # axios instance, query-client, utils
-    hooks/
+      # her feature: api/ (query/mutation hook'ları), types.ts, {Feature}Page.tsx (+ .test.tsx), New{Entity}Page.tsx (çok satırlı formlar için)
+    components/ui/         # shadcn bileşenleri (Base UI tabanlı — bkz. Frontend Kuralları)
+    lib/                    # axios, query-client, errors, dates, pagination, utils
+    hooks/                  # useDebouncedValue vb.
     types/
 ```
 
-Naming: API hook'ları `use{Verb}{Resource}` (örn. `useCreateProduct`, `useProducts`), Zustand store'ları `use{Feature}Store`.
+Naming: API hook'ları `use{Verb}{Resource}` (örn. `useCreateProduct`, `useProducts`), Zustand store'ları `use{Feature}Store`. Liste+CRUD sayfası `{AggregatePlural}Page` (örn. `ProductsPage`), çok satırlı oluşturma formu ayrı bir sayfa olarak `New{Aggregate}Page` (dialog değil — bkz. Frontend Kuralları, "İki/çok adımlı workflow ekranları").
+
+### Frontend Kuralları
+
+- **State ayrımı sıkı uygulanır**: Backend'den gelen HER ŞEY (liste verisi, kullanıcı profili, roller — hiçbir istisna yok) TanStack Query'de yaşar; Zustand sadece gerçekten client-only olan şeyler içindir (`accessToken`/`refreshToken` gibi React ağacı dışından — örn. axios interceptor'dan — okunması gereken durum, tema, filtre state'i). Faz10'da kullanıcı profili yanlışlıkla Zustand store'a konulmuş, Faz11'de `useCurrentUser()` (TanStack Query) hook'una taşındı — bu hata tekrarlanmamalı.
+- **`lib/errors.ts`**: `getApiErrorMessage(error, fallback?)` — backend'in `ProblemDetails.title`'ını bilinen bir `KNOWN_ERROR_MESSAGES` sözlüğünde Türkçe mesaja çevirir, bilinmeyen bir kod için backend'in İngilizce `detail`'ini **asla** doğrudan göstermez (genel Türkçe fallback döner). Kullanıcının normal kullanımda tetikleyebileceği her hata kodu (409/400 InUse, InsufficientStock, SameWarehouse gibi) için sözlüğe bir satır eklenir; UI'ın zaten engellediği "olmaması gereken" hatalar (NotFound/NotDraft gibi) için gerek yok.
+- **`lib/dates.ts`**: `formatUtcDateTime(value)` — Dapper okuma tarafının döndürdüğü `DateTime` alanları (bkz. Dapper Kuralları) JSON'da 'Z' son eki olmadan UTC gelir; ham `new Date(value)` bunu yerel saat sanır. Backend'den gelen her tarih/saat alanı bu yardımcıyla gösterilir.
+- **`lib/pagination.ts`**: `PagedResult<T> = {items, totalCount, page, pageSize}` — backend'in `PagedResult<T>`'ına birebir karşılık gelir. Potansiyel olarak çok büyüyebilecek listeler (yüz binlerce kayıt) sayfalanır; doğası gereği küçük kalacak referans listeleri (Depo/Kategori/Birim gibi) sayfalanmaz.
+- **shadcn "base" (Base UI) bileşen kütüphanesi — iki zorunlu nokta**: (1) Radix'teki `asChild` yerine `render={<Comp/>}` prop deseni kullanılır. (2) `Select.Root`'un seçili değerin etiketini gösterebilmesi için `items` prop'u (value→label map'i) zorunludur.
+- **Test yaklaşımı (MVP boyunca)**: Her fazda kapsamlı değil, temsili birkaç "smoke test" yazılır — kapsamlı frontend testleri Faz14'e bırakılmıştır. Base UI `Select` içeren etkileşim testleri jsdom'da kırılgan olabilir; mümkün olduğunda Select yerine `Input`/`Table` kullanan bileşenler tercih edilip test edilir, Select-ağırlıklı formlar gerçek tarayıcıda manuel doğrulanır.
+- **Modül/feature ve iş akışı dokümantasyonu `docs/workflows/`'ta tutulur** (bkz. §9) — CLAUDE.md sadece proje geneli mimari/kural/konvansiyonları içerir, tek bir modülün/iş akışının API sözleşmesi, rol modeli veya UI kararları burada anlatılmaz.
 
 ---
 
@@ -191,3 +206,21 @@ Kurallar:
 - Command handler'lar EF Core, query handler'lar Dapper kullanır; bu ayrım asla karıştırılmaz.
 - Domain event'ler `SaveChangesAsync` sonrası dispatch edilir.
 - Testler: yeni her modül için en az unit test (handler) + entegre test (repository/DB) yazılır.
+- Bir iş akışı (modül) baştan sona (backend+frontend) bittiğinde veya önemli ölçüde değiştiğinde **"Dökümanları güncelle/yaz"** adımı `docs/workflows/{isakisi}.md`'yi de kapsar (bkz. §9) — sadece `TASKS.md` işaretlemek yeterli değildir.
+
+---
+
+## 9. Modül / İş Akışı Dokümantasyonu
+
+CLAUDE.md **sadece** proje geneli mimari kararları, naming standardını ve tekrar eden konvansiyonları içerir — tek bir modülün veya iş akışının API sözleşmesi, rol modeli, ekran/bileşen kararları ya da bilinen kısıtları burada **anlatılmaz**, aksi halde bu dosya çok şişer ve genel kural aramak zorlaşır.
+
+Her iş akışı (Mal Kabul, Sevkiyat, Transfer, Sayım, ileride eklenecekler) için `docs/workflows/{isakisi-kebab-case}.md` dosyası açılır ve şunları içerir:
+- **Özet**: kim, ne zaman, neden kullanır.
+- **Durum makinesi**: durumlar ve hangi command/action hangi geçişi tetikler.
+- **Roller**: oluşturma/onay/gönderim/teslim gibi her eylem için hangi rollerin yetkili olduğu.
+- **Backend API**: route tablosu (method+path), request/response DTO şekli, hata kodları (ProblemDetails `title` + HTTP status + tetikleyen koşul).
+- **Frontend**: sayfa/bileşen dosya yolları, önemli tasarım kararları ve neden öyle yapıldığı.
+- **Bilinen kısıtlar / gotcha'lar**: backend'in davranışından kaynaklanan ve frontend'de telafi edilen durumlar (örn. bir kontrolün satır bazında bağımsız yapılması).
+- **Doğrulama**: uçtan uca test edilmiş senaryolar.
+
+Basit CRUD referans verileri (Ürün/Kategori/Birim/Depo gibi durum makinesi olmayan ekranlar) için ayrı bir workflow dokümanı zorunlu değildir — bunlar CLAUDE.md §5'teki entity taslağı ve kod ile yeterince açıktır; büyürlerse yine de `docs/workflows/` altına eklenebilir.
