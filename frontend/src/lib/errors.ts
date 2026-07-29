@@ -7,6 +7,8 @@ const KNOWN_ERROR_MESSAGES: Record<string, string> = {
   'GoodsIssue.InsufficientStock': 'Seçilen depoda bu ürün için yeterli stok yok.',
   'StockTransfer.SameWarehouse': 'Kaynak ve hedef depo aynı olamaz.',
   'StockTransfer.InsufficientStock': 'Kaynak depoda bu ürün için yeterli stok yok.',
+  'StockCount.DuplicateLine': 'Bu ürün bu sayımda zaten sayılmış.',
+  'StockCountAdjustment.NotPending': 'Bu düzeltme zaten karara bağlanmış.',
   'Auth.InvalidCredentials': 'E-posta veya şifre hatalı.',
 }
 

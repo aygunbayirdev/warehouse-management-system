@@ -22,6 +22,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/goods-receipts', label: 'Mal Kabul' },
   { to: '/goods-issues', label: 'Sevkiyat' },
   { to: '/stock-transfers', label: 'Transfer' },
+  { to: '/stock-counts', label: 'Sayım' },
+  { to: '/stock-count-adjustments', label: 'Sayım Düzeltmeleri' },
 ]
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
