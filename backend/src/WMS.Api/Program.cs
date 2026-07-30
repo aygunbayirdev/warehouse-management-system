@@ -140,3 +140,7 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Top-level statements generate an internal Program class; WMS.Api.FunctionalTests needs a public
+// one to use as the generic argument for WebApplicationFactory<Program>.
+public partial class Program;

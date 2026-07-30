@@ -43,4 +43,17 @@
     <Project Path="src/Modules/Transfer/WMS.Modules.Transfer.Domain/WMS.Modules.Transfer.Domain.csproj" />
     <Project Path="src/Modules/Transfer/WMS.Modules.Transfer.Infrastructure/WMS.Modules.Transfer.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WMS.Api.FunctionalTests/WMS.Api.FunctionalTests.csproj" />
+    <Project Path="tests/WMS.Modules.Catalog.IntegrationTests/WMS.Modules.Catalog.IntegrationTests.csproj" />
+    <Project Path="tests/WMS.Modules.Catalog.UnitTests/WMS.Modules.Catalog.UnitTests.csproj" />
+    <Project Path="tests/WMS.Modules.Identity.UnitTests/WMS.Modules.Identity.UnitTests.csproj" />
+    <Project Path="tests/WMS.Modules.Inbound.UnitTests/WMS.Modules.Inbound.UnitTests.csproj" />
+    <Project Path="tests/WMS.Modules.Inventory.IntegrationTests/WMS.Modules.Inventory.IntegrationTests.csproj" />
+    <Project Path="tests/WMS.Modules.Inventory.UnitTests/WMS.Modules.Inventory.UnitTests.csproj" />
+    <Project Path="tests/WMS.Modules.Outbound.UnitTests/WMS.Modules.Outbound.UnitTests.csproj" />
+    <Project Path="tests/WMS.Modules.StockCount.IntegrationTests/WMS.Modules.StockCount.IntegrationTests.csproj" />
+    <Project Path="tests/WMS.Modules.StockCount.UnitTests/WMS.Modules.StockCount.UnitTests.csproj" />
+    <Project Path="tests/WMS.Modules.Transfer.UnitTests/WMS.Modules.Transfer.UnitTests.csproj" />
+  </Folder>
 </Solution>
