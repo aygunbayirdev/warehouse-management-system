@@ -9,6 +9,7 @@ import { NewGoodsIssuePage } from '@/features/outbound/NewGoodsIssuePage'
 import { CategoriesPage } from '@/features/products/CategoriesPage'
 import { ProductsPage } from '@/features/products/ProductsPage'
 import { UnitsOfMeasurePage } from '@/features/products/UnitsOfMeasurePage'
+import { ReportsPage } from '@/features/reports/ReportsPage'
 import { StockCountAdjustmentsPage } from '@/features/stock-count/StockCountAdjustmentsPage'
 import { StockCountDetailPage } from '@/features/stock-count/StockCountDetailPage'
 import { StockCountsPage } from '@/features/stock-count/StockCountsPage'
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
             path: '/stock-count-adjustments',
             element: <StockCountAdjustmentsPage />,
           },
+          { path: '/reports', element: <ReportsPage /> },
           {
             path: '/admin',
             element: (

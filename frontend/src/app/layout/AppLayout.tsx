@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/stock-transfers', label: 'Transfer' },
   { to: '/stock-counts', label: 'Sayım' },
   { to: '/stock-count-adjustments', label: 'Sayım Düzeltmeleri' },
+  { to: '/reports', label: 'Raporlar' },
 ]
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
