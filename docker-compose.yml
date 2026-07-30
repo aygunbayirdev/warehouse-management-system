@@ -17,25 +17,33 @@ services:
       timeout: 5s
       retries: 10
 
-  # backend:
-  #   build: ./backend
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   ports:
-  #     - "${BACKEND_PORT:-5000}:8080"
-  #   environment:
-  #     ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-wms};Username=${POSTGRES_USER:-wms_user};Password=${POSTGRES_PASSWORD:-wms_password}"
-  #     Jwt__Secret: ${JWT_SECRET}
-  #
-  # frontend:
-  #   build: ./frontend
-  #   depends_on:
-  #     - backend
-  #   ports:
-  #     - "${FRONTEND_PORT:-3000}:80"
-  #   environment:
-  #     VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000}
+  backend:
+    build: ./backend
+    container_name: wms-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-5000}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-wms};Username=${POSTGRES_USER:-wms_user};Password=${POSTGRES_PASSWORD:-wms_password}"
+      Jwt__Secret: ${JWT_SECRET}
+      Cors__AllowedOrigins__0: "http://localhost:${FRONTEND_PORT:-3000}"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+    container_name: wms-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
 
 volumes:
   wms-postgres-data:

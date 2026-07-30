@@ -1,19 +1,26 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using WMS.Api.Middleware;
 using WMS.BuildingBlocks.Application;
 using WMS.BuildingBlocks.Infrastructure;
 using WMS.Modules.Catalog.Infrastructure;
+using WMS.Modules.Catalog.Infrastructure.Persistence;
 using WMS.Modules.Identity.Infrastructure;
 using WMS.Modules.Identity.Infrastructure.Auth;
 using WMS.Modules.Identity.Infrastructure.Seeding;
 using WMS.Modules.Inbound.Infrastructure;
+using WMS.Modules.Inbound.Infrastructure.Persistence;
 using WMS.Modules.Inventory.Infrastructure;
+using WMS.Modules.Inventory.Infrastructure.Persistence;
 using WMS.Modules.Outbound.Infrastructure;
+using WMS.Modules.Outbound.Infrastructure.Persistence;
 using WMS.Modules.StockCount.Infrastructure;
+using WMS.Modules.StockCount.Infrastructure.Persistence;
 using WMS.Modules.Transfer.Infrastructure;
+using WMS.Modules.Transfer.Infrastructure.Persistence;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -104,6 +111,22 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
+
+    // Every module owns its own DbContext/schema (bkz. CLAUDE.md §1), so each one needs its own
+    // migration call. IdentitySeeder already migrates its own context as part of seeding the
+    // default Admin user; the rest are applied here so a fresh database (e.g. `docker compose up`
+    // against an empty Postgres volume) ends up with every schema in place without a separate
+    // manual `dotnet ef database update` step per module.
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        await services.GetRequiredService<CatalogDbContext>().Database.MigrateAsync();
+        await services.GetRequiredService<InventoryDbContext>().Database.MigrateAsync();
+        await services.GetRequiredService<InboundDbContext>().Database.MigrateAsync();
+        await services.GetRequiredService<OutboundDbContext>().Database.MigrateAsync();
+        await services.GetRequiredService<TransferDbContext>().Database.MigrateAsync();
+        await services.GetRequiredService<StockCountDbContext>().Database.MigrateAsync();
+    }
 
     await IdentitySeeder.SeedAsync(app.Services);
 
