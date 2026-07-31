@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using WMS.Api.Middleware;
+using WMS.Api.Seeding;
 using WMS.BuildingBlocks.Application;
 using WMS.BuildingBlocks.Infrastructure;
 using WMS.Modules.Catalog.Infrastructure;
@@ -129,6 +130,11 @@ try
     }
 
     await IdentitySeeder.SeedAsync(app.Services);
+
+    if (app.Configuration.GetValue("Seeding:SeedDemoData", true))
+    {
+        await DemoDataSeeder.SeedAsync(app.Services);
+    }
 
     app.Run();
 }

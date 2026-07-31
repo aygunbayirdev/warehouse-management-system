@@ -20,6 +20,7 @@ dotnet run --project src/WMS.Api
 API `http://localhost:5088` adresinde açılır (bkz. `src/WMS.Api/Properties/launchSettings.json`). İlk açılışta:
 - Her modülün veritabanı migration'ları otomatik uygulanır (7 şema: `identity`, `catalog`, `inventory`, `inbound`, `outbound`, `transfer`, `stockcount`) — ayrı bir `dotnet ef database update` adımına gerek yok.
 - Varsayılan bir Admin kullanıcısı seed edilir: `admin@wms.local` / `ChangeMe123!` (bkz. `appsettings.json` → `Identity:AdminSeed` — üretimde değiştirilmeli).
+- Tutarlı bir demo veri seti (`src/WMS.Api/Seeding/DemoDataSeeder.cs`) otomatik yüklenir — birim/kategori/ürün/depo referans verisi + onaylanmış mal kabul/sevkiyat/transfer + bir taslak transfer + bir onay bekleyen sayım düzeltmesi. Ham SQL değil, gerçek `ISender`/MediatR command'ları üzerinden oluşturulduğu için stok miktarları/ledger/sayım farkları arasında tutarsızlık riski yoktur. Sadece veritabanı tamamen boşken çalışır (mevcut veriyi asla ezmez); `appsettings.json` → `Seeding:SeedDemoData` (varsayılan `true`) ile kapatılabilir.
 
 Bağlantı dizesi ve JWT secret'ı `appsettings.json`'da tanımlıdır; `ConnectionStrings__Default`/`Jwt__Secret` ortam değişkenleriyle override edilebilir (Docker Compose'un yaptığı budur, bkz. repo kökündeki `docker-compose.yml`).
 

@@ -26,6 +26,11 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         // setup instead, which happens earlier - before any of Program.cs's own code - so this is
         // the one override mechanism that actually lands in time.
         Environment.SetEnvironmentVariable("ConnectionStrings__Default", _container.GetConnectionString());
+
+        // DemoDataSeeder runs on every fresh database by default (see TASKS.md Faz 15), which would
+        // otherwise collide with GoodsReceiptWorkflowTests' own "ADET" unit of measure. Functional
+        // tests want a clean, minimal database they fully control, not the demo dataset.
+        Environment.SetEnvironmentVariable("Seeding__SeedDemoData", "false");
     }
 
     async Task IAsyncLifetime.DisposeAsync() => await _container.DisposeAsync();

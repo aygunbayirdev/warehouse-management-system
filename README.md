@@ -32,7 +32,9 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Frontend `http://localhost:3000`, backend `http://localhost:5000/api` adresinde açılır (portlar `.env`'de değiştirilebilir). İlk açılışta veritabanı şemaları ve varsayılan Admin kullanıcısı (`admin@wms.local` / `ChangeMe123!`) otomatik oluşturulur.
+Frontend `http://localhost:3000`, backend `http://localhost:5000/api` adresinde açılır (portlar `.env`'de değiştirilebilir). İlk açılışta (veritabanı tamamen boşsa):
+- Veritabanı şemaları ve varsayılan Admin kullanıcısı (`admin@wms.local` / `ChangeMe123!`) otomatik oluşturulur.
+- Tutarlı bir **demo veri seti** otomatik yüklenir (birkaç ürün/depo/onaylanmış işlem, kasıtlı olarak bırakılmış bir taslak transfer ve bir onay bekleyen sayım düzeltmesi dahil) — böylece ilk açılışta sistem boş bir kabuk değil, gerçekçi ve tutarlı sayılarla dolu, denenebilir bir uygulama olarak karşılar. Bu veri sadece **veritabanı tamamen boşken** bir kere yüklenir, var olan gerçek veriyi asla ezmez; `appsettings.json` → `Seeding:SeedDemoData` ile kapatılabilir.
 
 ### Yol 2 — Lokal geliştirme (hot reload, ayrı ayrı)
 
