@@ -29,6 +29,14 @@ public sealed class StockController(ISender sender) : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("low-stock")]
+    public async Task<IActionResult> GetLowStockItems([FromQuery] int limit = 10, CancellationToken cancellationToken = default)
+    {
+        var result = await sender.Send(new GetLowStockItemsQuery(limit), cancellationToken);
+
+        return result.ToActionResult();
+    }
+
     [HttpGet("movements")]
     public async Task<IActionResult> GetStockMovements(
         [FromQuery] Guid? warehouseId,
