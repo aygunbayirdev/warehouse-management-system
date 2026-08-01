@@ -3,9 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser } from '@/features/auth/api/useCurrentUser'
-import { useHasAnyRole } from '@/features/auth/api/useHasAnyRole'
 import { useLogout } from '@/features/auth/api/useLogout'
-import { RoleNames } from '@/features/auth/types'
 import { cn } from '@/lib/utils'
 
 type NavItem = {
@@ -36,7 +34,6 @@ function navLinkClassName({ isActive }: { isActive: boolean }) {
 
 export function AppLayout() {
   const { data: user, isLoading } = useCurrentUser()
-  const isAdmin = useHasAnyRole([RoleNames.Admin])
   const logout = useLogout()
 
   return (
@@ -54,11 +51,6 @@ export function AppLayout() {
               {item.label}
             </NavLink>
           ))}
-          {isAdmin && (
-            <NavLink to="/admin" className={navLinkClassName}>
-              Yönetim
-            </NavLink>
-          )}
         </nav>
       </aside>
       <div className="flex flex-1 flex-col">

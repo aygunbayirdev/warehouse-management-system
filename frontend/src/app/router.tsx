@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { LoginPage } from '@/features/auth/LoginPage'
-import { RoleNames } from '@/features/auth/types'
 import { GoodsReceiptsPage } from '@/features/inbound/GoodsReceiptsPage'
 import { NewGoodsReceiptPage } from '@/features/inbound/NewGoodsReceiptPage'
 import { GoodsIssuesPage } from '@/features/outbound/GoodsIssuesPage'
@@ -18,10 +17,8 @@ import { StockTransfersPage } from '@/features/transfer/StockTransfersPage'
 import { WarehousesPage } from '@/features/warehouses/WarehousesPage'
 
 import { AppLayout } from './layout/AppLayout'
-import { AdminPlaceholderPage } from './routes/AdminPlaceholderPage'
 import { DashboardPage } from './routes/DashboardPage'
 import { ProtectedRoute } from './routes/ProtectedRoute'
-import { RoleGuard } from './routes/RoleGuard'
 
 export const router = createBrowserRouter([
   {
@@ -52,14 +49,6 @@ export const router = createBrowserRouter([
             element: <StockCountAdjustmentsPage />,
           },
           { path: '/reports', element: <ReportsPage /> },
-          {
-            path: '/admin',
-            element: (
-              <RoleGuard allowedRoles={[RoleNames.Admin]}>
-                <AdminPlaceholderPage />
-              </RoleGuard>
-            ),
-          },
         ],
       },
     ],
