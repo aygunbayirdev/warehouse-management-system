@@ -9,8 +9,8 @@ import { getApiErrorMessage } from '@/lib/errors'
 import { useLogin } from './api/useLogin'
 
 export function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('admin@wms.local')
+  const [password, setPassword] = useState('ChangeMe123!')
   const navigate = useNavigate()
   const loginMutation = useLogin()
 
@@ -29,6 +29,10 @@ export function LoginPage() {
         className="w-full max-w-sm space-y-4 rounded-lg border p-6"
       >
         <h1 className="text-lg font-semibold">WMS&apos;e Giriş Yap</h1>
+        <p className="text-sm text-muted-foreground">
+          Demo hesabı önceden dolduruldu, doğrudan &quot;Giriş Yap&quot;a
+          tıklayabilirsiniz.
+        </p>
 
         <div className="space-y-1.5">
           <Label htmlFor="email">E-posta</Label>

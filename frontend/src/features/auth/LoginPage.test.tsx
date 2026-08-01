@@ -34,7 +34,7 @@ describe('LoginPage', () => {
     vi.mocked(apiClient.post).mockReset()
   })
 
-  it('stores tokens after a successful login', async () => {
+  it('stores tokens after a successful login using the prefilled demo credentials', async () => {
     vi.mocked(apiClient.post).mockResolvedValueOnce({
       data: {
         accessToken: 'test-access-token',
@@ -46,9 +46,10 @@ describe('LoginPage', () => {
 
     renderLoginPage()
 
+    expect(screen.getByLabelText('E-posta')).toHaveValue('admin@wms.local')
+    expect(screen.getByLabelText('Şifre')).toHaveValue('ChangeMe123!')
+
     const user = userEvent.setup()
-    await user.type(screen.getByLabelText('E-posta'), 'admin@wms.local')
-    await user.type(screen.getByLabelText('Şifre'), 'ChangeMe123!')
     await user.click(screen.getByRole('button', { name: 'Giriş Yap' }))
 
     await waitFor(() =>
@@ -66,7 +67,9 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     const user = userEvent.setup()
+    await user.clear(screen.getByLabelText('E-posta'))
     await user.type(screen.getByLabelText('E-posta'), 'admin@wms.local')
+    await user.clear(screen.getByLabelText('Şifre'))
     await user.type(screen.getByLabelText('Şifre'), 'wrong-password')
     await user.click(screen.getByRole('button', { name: 'Giriş Yap' }))
 
