@@ -22,6 +22,8 @@ export type GoodsIssueDto = {
 export type GoodsIssueFilters = {
   warehouseId?: string
   status?: GoodsIssueStatus
+  page: number
+  pageSize: number
 }
 
 export type CreateGoodsIssueLineInput = {

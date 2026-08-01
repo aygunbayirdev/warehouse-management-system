@@ -1,5 +1,6 @@
 using System.Text;
 using Dapper;
+using WMS.BuildingBlocks.Application.Models;
 using WMS.BuildingBlocks.Infrastructure.Persistence;
 using WMS.Modules.Transfer.Application.Abstractions;
 using WMS.Modules.Transfer.Application.Dtos;
@@ -41,49 +42,84 @@ internal sealed class StockTransferReadRepository(ISqlConnectionFactory connecti
         return rows.Count == 0 ? null : MapToDto(rows);
     }
 
-    public async Task<IReadOnlyCollection<StockTransferDto>> GetListAsync(
+    public async Task<PagedResult<StockTransferDto>> GetListAsync(
         Guid? sourceWarehouseId,
         Guid? destinationWarehouseId,
         StockTransferStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken)
     {
-        var sql = new StringBuilder(BaseSql);
         var parameters = new DynamicParameters();
-        var hasWhere = false;
+        parameters.Add("PageSize", pageSize);
+        parameters.Add("Skip", (page - 1) * pageSize);
 
         if (sourceWarehouseId is not null)
         {
-            sql.Append(" WHERE st.source_warehouse_id = @SourceWarehouseId");
             parameters.Add("SourceWarehouseId", sourceWarehouseId);
-            hasWhere = true;
         }
 
         if (destinationWarehouseId is not null)
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("st.destination_warehouse_id = @DestinationWarehouseId");
             parameters.Add("DestinationWarehouseId", destinationWarehouseId);
-            hasWhere = true;
         }
 
         if (status is not null)
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("st.status = @Status");
             parameters.Add("Status", status.Value.ToString());
         }
 
-        sql.Append(" ORDER BY st.created_at_utc DESC");
+        string BuildWhere(string alias)
+        {
+            var clause = new StringBuilder();
+            var hasWhere = false;
+
+            if (sourceWarehouseId is not null)
+            {
+                clause.Append($" WHERE {alias}.source_warehouse_id = @SourceWarehouseId");
+                hasWhere = true;
+            }
+
+            if (destinationWarehouseId is not null)
+            {
+                clause.Append(hasWhere ? " AND " : " WHERE ");
+                clause.Append($"{alias}.destination_warehouse_id = @DestinationWarehouseId");
+                hasWhere = true;
+            }
+
+            if (status is not null)
+            {
+                clause.Append(hasWhere ? " AND " : " WHERE ");
+                clause.Append($"{alias}.status = @Status");
+            }
+
+            return clause.ToString();
+        }
+
+        // Pagination runs over a distinct header-id subquery, see GoodsReceiptReadRepository for why.
+        var sql = $"""
+            SELECT COUNT(*) FROM transfer.stock_transfers st{BuildWhere("st")};
+            {BaseSql} WHERE st.id IN (
+                SELECT st2.id FROM transfer.stock_transfers st2{BuildWhere("st2")}
+                ORDER BY st2.created_at_utc DESC
+                LIMIT @PageSize OFFSET @Skip
+            )
+            ORDER BY st.created_at_utc DESC;
+            """;
 
         using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition(sql.ToString(), parameters, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, parameters, cancellationToken: cancellationToken);
 
-        var rows = await connection.QueryAsync<StockTransferRow>(command);
+        await using var multi = await connection.QueryMultipleAsync(command);
+        var totalCount = await multi.ReadSingleAsync<int>();
+        var rows = (await multi.ReadAsync<StockTransferRow>()).ToList();
 
-        return rows
+        var items = rows
             .GroupBy(row => row.Id)
             .Select(group => MapToDto(group.ToList()))
             .ToList();
+
+        return new PagedResult<StockTransferDto>(items, totalCount, page, pageSize);
     }
 
     private static StockTransferDto MapToDto(IReadOnlyCollection<StockTransferRow> rows)

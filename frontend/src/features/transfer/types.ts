@@ -25,6 +25,8 @@ export type StockTransferFilters = {
   sourceWarehouseId?: string
   destinationWarehouseId?: string
   status?: StockTransferStatus
+  page: number
+  pageSize: number
 }
 
 export type CreateStockTransferLineInput = {

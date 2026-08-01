@@ -21,6 +21,8 @@ export type GoodsReceiptDto = {
 export type GoodsReceiptFilters = {
   warehouseId?: string
   status?: GoodsReceiptStatus
+  page: number
+  pageSize: number
 }
 
 export type CreateGoodsReceiptLineInput = {

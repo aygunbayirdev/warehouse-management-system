@@ -20,9 +20,12 @@ public sealed class StockTransfersController(ISender sender) : ControllerBase
         [FromQuery] Guid? sourceWarehouseId,
         [FromQuery] Guid? destinationWarehouseId,
         [FromQuery] StockTransferStatus? status,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var result = await sender.Send(new GetStockTransfersQuery(sourceWarehouseId, destinationWarehouseId, status), cancellationToken);
+        var result = await sender.Send(
+            new GetStockTransfersQuery(sourceWarehouseId, destinationWarehouseId, status, page, pageSize), cancellationToken);
 
         return result.ToActionResult();
     }

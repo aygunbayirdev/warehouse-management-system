@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { PaginationControls } from '@/components/PaginationControls'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -34,6 +35,7 @@ import {
 import type { StockMovementType } from './types'
 
 const ALL_VALUE = 'all'
+const PAGE_SIZE = 20
 
 function WarehouseFilter({
   value,
@@ -247,24 +249,48 @@ function StockMovementsReport() {
   )
   const [fromUtc, setFromUtc] = useState<string | undefined>()
   const [toUtc, setToUtc] = useState<string | undefined>()
+  const [page, setPage] = useState(1)
 
-  const { data: movements, isLoading } = useStockMovements({
+  const { data, isLoading } = useStockMovements({
     warehouseId,
     productId: product?.id,
     fromUtc,
     toUtc,
+    page,
+    pageSize: PAGE_SIZE,
   })
+  const movements = data?.items
+  const totalCount = data?.totalCount ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-2">
-        <WarehouseFilter value={warehouseId} onChange={setWarehouseId} />
-        <ProductFilter product={product} onChange={setProduct} />
+        <WarehouseFilter
+          value={warehouseId}
+          onChange={(value) => {
+            setWarehouseId(value)
+            setPage(1)
+          }}
+        />
+        <ProductFilter
+          product={product}
+          onChange={(value) => {
+            setProduct(value)
+            setPage(1)
+          }}
+        />
         <DateRangeFilter
           fromUtc={fromUtc}
           toUtc={toUtc}
-          onFromChange={setFromUtc}
-          onToChange={setToUtc}
+          onFromChange={(value) => {
+            setFromUtc(value)
+            setPage(1)
+          }}
+          onToChange={(value) => {
+            setToUtc(value)
+            setPage(1)
+          }}
         />
       </div>
 
@@ -306,6 +332,14 @@ function StockMovementsReport() {
           ))}
         </TableBody>
       </Table>
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   )
 }

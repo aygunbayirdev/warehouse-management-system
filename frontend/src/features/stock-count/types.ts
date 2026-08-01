@@ -23,6 +23,8 @@ export type StockCountDto = {
 export type StockCountFilters = {
   warehouseId?: string
   status?: StockCountStatus
+  page: number
+  pageSize: number
 }
 
 export type CreateStockCountPayload = {
@@ -54,4 +56,6 @@ export type StockCountAdjustmentDto = {
 export type StockCountAdjustmentFilters = {
   warehouseId?: string
   status?: StockCountAdjustmentStatus
+  page: number
+  pageSize: number
 }

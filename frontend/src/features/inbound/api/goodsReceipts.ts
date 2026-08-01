@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { apiClient } from '@/lib/axios'
+import type { PagedResult } from '@/lib/pagination'
 
 import type {
   CreateGoodsReceiptPayload,
@@ -12,7 +13,7 @@ export function useGoodsReceipts(filters: GoodsReceiptFilters) {
   return useQuery({
     queryKey: ['goods-receipts', filters],
     queryFn: async () => {
-      const response = await apiClient.get<GoodsReceiptDto[]>(
+      const response = await apiClient.get<PagedResult<GoodsReceiptDto>>(
         '/goods-receipts',
         { params: filters },
       )

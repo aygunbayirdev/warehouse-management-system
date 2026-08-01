@@ -1,5 +1,6 @@
 using System.Text;
 using Dapper;
+using WMS.BuildingBlocks.Application.Models;
 using WMS.BuildingBlocks.Infrastructure.Persistence;
 using WMS.Modules.StockCount.Application.Abstractions;
 using WMS.Modules.StockCount.Application.Dtos;
@@ -36,36 +37,46 @@ internal sealed class StockCountAdjustmentReadRepository(ISqlConnectionFactory c
         return await connection.QuerySingleOrDefaultAsync<StockCountAdjustmentDto>(command);
     }
 
-    public async Task<IReadOnlyCollection<StockCountAdjustmentDto>> GetListAsync(
+    public async Task<PagedResult<StockCountAdjustmentDto>> GetListAsync(
         Guid? warehouseId,
         StockCountAdjustmentStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken)
     {
-        var sql = new StringBuilder(BaseSql);
+        var whereClause = new StringBuilder();
         var parameters = new DynamicParameters();
         var hasWhere = false;
 
         if (warehouseId is not null)
         {
-            sql.Append(" WHERE sca.warehouse_id = @WarehouseId");
+            whereClause.Append(" WHERE sca.warehouse_id = @WarehouseId");
             parameters.Add("WarehouseId", warehouseId);
             hasWhere = true;
         }
 
         if (status is not null)
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("sca.status = @Status");
+            whereClause.Append(hasWhere ? " AND " : " WHERE ");
+            whereClause.Append("sca.status = @Status");
             parameters.Add("Status", status.Value.ToString());
         }
 
-        sql.Append(" ORDER BY sca.created_at_utc DESC");
+        parameters.Add("PageSize", pageSize);
+        parameters.Add("Skip", (page - 1) * pageSize);
+
+        var sql = $"""
+            SELECT COUNT(*) FROM stockcount.stock_count_adjustments sca{whereClause};
+            {BaseSql}{whereClause} ORDER BY sca.created_at_utc DESC LIMIT @PageSize OFFSET @Skip;
+            """;
 
         using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition(sql.ToString(), parameters, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, parameters, cancellationToken: cancellationToken);
 
-        var rows = await connection.QueryAsync<StockCountAdjustmentDto>(command);
+        await using var multi = await connection.QueryMultipleAsync(command);
+        var totalCount = await multi.ReadSingleAsync<int>();
+        var items = (await multi.ReadAsync<StockCountAdjustmentDto>()).ToList();
 
-        return rows.ToList();
+        return new PagedResult<StockCountAdjustmentDto>(items, totalCount, page, pageSize);
     }
 }

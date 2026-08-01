@@ -1,5 +1,6 @@
 using System.Text;
 using Dapper;
+using WMS.BuildingBlocks.Application.Models;
 using WMS.BuildingBlocks.Infrastructure.Persistence;
 using WMS.Modules.Inventory.Application.Abstractions;
 using WMS.Modules.Inventory.Application.Dtos;
@@ -22,54 +23,64 @@ internal sealed class StockMovementReadRepository(ISqlConnectionFactory connecti
         INNER JOIN catalog.products p ON p.id = sm.product_id
         """;
 
-    public async Task<IReadOnlyCollection<StockMovementDto>> GetListAsync(
+    public async Task<PagedResult<StockMovementDto>> GetListAsync(
         Guid? warehouseId,
         Guid? productId,
         DateTime? fromUtc,
         DateTime? toUtc,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken)
     {
-        var sql = new StringBuilder(BaseSql);
+        var whereClause = new StringBuilder();
         var parameters = new DynamicParameters();
         var hasWhere = false;
 
         if (warehouseId is not null)
         {
-            sql.Append(" WHERE sm.warehouse_id = @WarehouseId");
+            whereClause.Append(" WHERE sm.warehouse_id = @WarehouseId");
             parameters.Add("WarehouseId", warehouseId);
             hasWhere = true;
         }
 
         if (productId is not null)
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("sm.product_id = @ProductId");
+            whereClause.Append(hasWhere ? " AND " : " WHERE ");
+            whereClause.Append("sm.product_id = @ProductId");
             parameters.Add("ProductId", productId);
             hasWhere = true;
         }
 
         if (fromUtc is not null)
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("sm.occurred_at_utc >= @FromUtc");
+            whereClause.Append(hasWhere ? " AND " : " WHERE ");
+            whereClause.Append("sm.occurred_at_utc >= @FromUtc");
             parameters.Add("FromUtc", fromUtc);
             hasWhere = true;
         }
 
         if (toUtc is not null)
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("sm.occurred_at_utc <= @ToUtc");
+            whereClause.Append(hasWhere ? " AND " : " WHERE ");
+            whereClause.Append("sm.occurred_at_utc <= @ToUtc");
             parameters.Add("ToUtc", toUtc);
         }
 
-        sql.Append(" ORDER BY sm.occurred_at_utc DESC");
+        parameters.Add("PageSize", pageSize);
+        parameters.Add("Skip", (page - 1) * pageSize);
+
+        var sql = $"""
+            SELECT COUNT(*) FROM inventory.stock_movements sm{whereClause};
+            {BaseSql}{whereClause} ORDER BY sm.occurred_at_utc DESC LIMIT @PageSize OFFSET @Skip;
+            """;
 
         using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition(sql.ToString(), parameters, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, parameters, cancellationToken: cancellationToken);
 
-        var result = await connection.QueryAsync<StockMovementDto>(command);
+        await using var multi = await connection.QueryMultipleAsync(command);
+        var totalCount = await multi.ReadSingleAsync<int>();
+        var items = (await multi.ReadAsync<StockMovementDto>()).ToList();
 
-        return result.ToList();
+        return new PagedResult<StockMovementDto>(items, totalCount, page, pageSize);
     }
 }

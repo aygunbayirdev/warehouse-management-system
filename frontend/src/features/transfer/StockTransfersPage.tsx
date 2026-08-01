@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PaginationControls } from '@/components/PaginationControls'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +50,8 @@ const SHIP_RECEIVE_ROLES = [
   RoleNames.WarehouseManager,
   RoleNames.WarehouseSupervisor,
 ]
+
+const PAGE_SIZE = 20
 
 const STATUS_ITEMS: Record<string, string> = {
   [ALL_VALUE]: 'Tüm durumlar',
@@ -98,13 +101,19 @@ export function StockTransfersPage() {
   const [statusFilter, setStatusFilter] = useState<
     StockTransferStatus | undefined
   >()
+  const [page, setPage] = useState(1)
 
   const { data: warehouses } = useWarehouses()
-  const { data: transfers, isLoading } = useStockTransfers({
+  const { data, isLoading } = useStockTransfers({
     sourceWarehouseId: sourceFilter,
     destinationWarehouseId: destinationFilter,
     status: statusFilter,
+    page,
+    pageSize: PAGE_SIZE,
   })
+  const transfers = data?.items
+  const totalCount = data?.totalCount ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   const warehouseItems = useMemo(
     () => ({
@@ -139,9 +148,10 @@ export function StockTransfersPage() {
         <Select
           items={warehouseItems}
           value={sourceFilter ?? ALL_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setSourceFilter(!value || value === ALL_VALUE ? undefined : value)
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Kaynak depo" />
@@ -159,11 +169,12 @@ export function StockTransfersPage() {
         <Select
           items={warehouseItems}
           value={destinationFilter ?? ALL_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setDestinationFilter(
               !value || value === ALL_VALUE ? undefined : value,
             )
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Hedef depo" />
@@ -181,13 +192,14 @@ export function StockTransfersPage() {
         <Select
           items={STATUS_ITEMS}
           value={statusFilter ?? ALL_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setStatusFilter(
               !value || value === ALL_VALUE
                 ? undefined
                 : (value as StockTransferStatus),
             )
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Tüm durumlar" />
@@ -240,6 +252,14 @@ export function StockTransfersPage() {
           ))}
         </TableBody>
       </Table>
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
 
       <Dialog
         open={viewingTransfer !== null}

@@ -1,3 +1,4 @@
+using WMS.BuildingBlocks.Application.Models;
 using WMS.Modules.Transfer.Application.Dtos;
 using WMS.Modules.Transfer.Domain;
 
@@ -7,9 +8,11 @@ public interface IStockTransferReadRepository
 {
     Task<StockTransferDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyCollection<StockTransferDto>> GetListAsync(
+    Task<PagedResult<StockTransferDto>> GetListAsync(
         Guid? sourceWarehouseId,
         Guid? destinationWarehouseId,
         StockTransferStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken);
 }

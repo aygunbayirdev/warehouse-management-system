@@ -1,3 +1,4 @@
+using WMS.BuildingBlocks.Application.Models;
 using WMS.Modules.StockCount.Application.Dtos;
 using WMS.Modules.StockCount.Domain;
 
@@ -7,9 +8,11 @@ public interface IStockCountReadRepository
 {
     Task<StockCountDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyCollection<StockCountDto>> GetListAsync(
+    Task<PagedResult<StockCountDto>> GetListAsync(
         Guid? warehouseId,
         StockCountStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken);
 
     Task<IReadOnlyCollection<StockCountVarianceReportRowDto>> GetVarianceReportAsync(

@@ -1,3 +1,4 @@
+using WMS.BuildingBlocks.Application.Models;
 using WMS.Modules.Outbound.Application.Dtos;
 using WMS.Modules.Outbound.Domain;
 
@@ -7,8 +8,10 @@ public interface IGoodsIssueReadRepository
 {
     Task<GoodsIssueDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyCollection<GoodsIssueDto>> GetListAsync(
+    Task<PagedResult<GoodsIssueDto>> GetListAsync(
         Guid? warehouseId,
         GoodsIssueStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken);
 }

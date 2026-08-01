@@ -1,4 +1,5 @@
 using WMS.BuildingBlocks.Application.Messaging;
+using WMS.BuildingBlocks.Application.Models;
 using WMS.Modules.Transfer.Application.Abstractions;
 using WMS.Modules.Transfer.Application.Dtos;
 using WMS.SharedKernel;
@@ -6,9 +7,9 @@ using WMS.SharedKernel;
 namespace WMS.Modules.Transfer.Application.StockTransfers;
 
 public sealed class GetStockTransfersQueryHandler(IStockTransferReadRepository readRepository)
-    : IQueryHandler<GetStockTransfersQuery, IReadOnlyCollection<StockTransferDto>>
+    : IQueryHandler<GetStockTransfersQuery, PagedResult<StockTransferDto>>
 {
-    public async Task<Result<IReadOnlyCollection<StockTransferDto>>> Handle(
+    public async Task<Result<PagedResult<StockTransferDto>>> Handle(
         GetStockTransfersQuery request,
         CancellationToken cancellationToken)
     {
@@ -16,6 +17,8 @@ public sealed class GetStockTransfersQueryHandler(IStockTransferReadRepository r
             request.SourceWarehouseId,
             request.DestinationWarehouseId,
             request.Status,
+            request.Page,
+            request.PageSize,
             cancellationToken);
 
         return Result.Success(stockTransfers);

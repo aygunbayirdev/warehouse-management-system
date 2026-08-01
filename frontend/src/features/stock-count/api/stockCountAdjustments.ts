@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { apiClient } from '@/lib/axios'
+import type { PagedResult } from '@/lib/pagination'
 
 import type { StockCountAdjustmentDto, StockCountAdjustmentFilters } from '../types'
 
@@ -8,7 +9,7 @@ export function useStockCountAdjustments(filters: StockCountAdjustmentFilters) {
   return useQuery({
     queryKey: ['stock-count-adjustments', filters],
     queryFn: async () => {
-      const response = await apiClient.get<StockCountAdjustmentDto[]>(
+      const response = await apiClient.get<PagedResult<StockCountAdjustmentDto>>(
         '/stock-count-adjustments',
         { params: filters },
       )

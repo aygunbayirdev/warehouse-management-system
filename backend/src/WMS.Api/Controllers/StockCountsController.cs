@@ -19,9 +19,11 @@ public sealed class StockCountsController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetStockCounts(
         [FromQuery] Guid? warehouseId,
         [FromQuery] StockCountStatus? status,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var result = await sender.Send(new GetStockCountsQuery(warehouseId, status), cancellationToken);
+        var result = await sender.Send(new GetStockCountsQuery(warehouseId, status, page, pageSize), cancellationToken);
 
         return result.ToActionResult();
     }

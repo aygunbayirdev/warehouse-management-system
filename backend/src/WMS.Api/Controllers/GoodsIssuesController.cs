@@ -19,9 +19,11 @@ public sealed class GoodsIssuesController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetGoodsIssues(
         [FromQuery] Guid? warehouseId,
         [FromQuery] GoodsIssueStatus? status,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var result = await sender.Send(new GetGoodsIssuesQuery(warehouseId, status), cancellationToken);
+        var result = await sender.Send(new GetGoodsIssuesQuery(warehouseId, status, page, pageSize), cancellationToken);
 
         return result.ToActionResult();
     }

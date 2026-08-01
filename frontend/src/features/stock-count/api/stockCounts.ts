@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { apiClient } from '@/lib/axios'
+import type { PagedResult } from '@/lib/pagination'
 
 import type {
   CreateStockCountPayload,
@@ -13,9 +14,10 @@ export function useStockCounts(filters: StockCountFilters) {
   return useQuery({
     queryKey: ['stock-counts', filters],
     queryFn: async () => {
-      const response = await apiClient.get<StockCountDto[]>('/stock-counts', {
-        params: filters,
-      })
+      const response = await apiClient.get<PagedResult<StockCountDto>>(
+        '/stock-counts',
+        { params: filters },
+      )
       return response.data
     },
   })

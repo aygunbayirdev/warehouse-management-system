@@ -35,6 +35,8 @@ export type StockMovementFilters = {
   productId?: string
   fromUtc?: string
   toUtc?: string
+  page: number
+  pageSize: number
 }
 
 export type StockCountVarianceReportRowDto = {

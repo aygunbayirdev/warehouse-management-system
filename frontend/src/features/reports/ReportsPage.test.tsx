@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -67,7 +67,9 @@ function mockEndpoints() {
       return Promise.resolve({ data: [STOCK_ITEM] })
     }
     if (url === '/stock/movements') {
-      return Promise.resolve({ data: [MOVEMENT] })
+      return Promise.resolve({
+        data: { items: [MOVEMENT], totalCount: 1, page: 1, pageSize: 20 },
+      })
     }
     if (url === '/stock-counts/variance-report') {
       return Promise.resolve({ data: [VARIANCE_ROW] })
@@ -110,6 +112,62 @@ describe('ReportsPage', () => {
     expect(
       screen.getByText('Stock count adjustment approved'),
     ).toBeInTheDocument()
+  })
+
+  it('shows the pagination summary on the stock movements tab and disables both buttons on a single page', async () => {
+    renderPage()
+    await screen.findByText('Ankara Depo')
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('tab', { name: 'Stok Hareketleri' }))
+
+    expect(await screen.findByText('1–1 / 1')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Önceki' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Sonraki' })).toBeDisabled()
+  })
+
+  it('requests the next page of stock movements when Sonraki is clicked', async () => {
+    vi.mocked(apiClient.get).mockImplementation((url: string, config) => {
+      if (url === '/warehouses') {
+        return Promise.resolve({ data: [WAREHOUSE] })
+      }
+      if (url === '/stock') {
+        return Promise.resolve({ data: [STOCK_ITEM] })
+      }
+      if (url === '/stock/movements') {
+        return Promise.resolve({
+          data: {
+            items: [MOVEMENT],
+            totalCount: 25,
+            page: (config?.params as { page?: number })?.page ?? 1,
+            pageSize: 20,
+          },
+        })
+      }
+      if (url === '/stock-counts/variance-report') {
+        return Promise.resolve({ data: [VARIANCE_ROW] })
+      }
+      return Promise.reject(new Error(`Unexpected GET ${url}`))
+    })
+
+    renderPage()
+    await screen.findByText('Ankara Depo')
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('tab', { name: 'Stok Hareketleri' }))
+
+    await screen.findByText('1–20 / 25')
+    const nextButton = screen.getByRole('button', { name: 'Sonraki' })
+    expect(nextButton).not.toBeDisabled()
+
+    await user.click(nextButton)
+
+    await waitFor(() =>
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/stock/movements',
+        expect.objectContaining({ params: expect.objectContaining({ page: 2 }) }),
+      ),
+    )
   })
 
   it('shows the stock count variance report when that tab is selected', async () => {

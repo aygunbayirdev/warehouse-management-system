@@ -39,7 +39,9 @@ const WAREHOUSE = { id: 'w1', code: 'ANK-01', name: 'Ankara Depo', address: null
 function mockListEndpoints() {
   vi.mocked(apiClient.get).mockImplementation((url: string) => {
     if (url === '/goods-receipts') {
-      return Promise.resolve({ data: [DRAFT_RECEIPT] })
+      return Promise.resolve({
+        data: { items: [DRAFT_RECEIPT], totalCount: 1, page: 1, pageSize: 20 },
+      })
     }
     if (url === '/warehouses') {
       return Promise.resolve({ data: [WAREHOUSE] })
@@ -92,6 +94,52 @@ describe('GoodsReceiptsPage', () => {
     expect(
       screen.queryByRole('button', { name: 'Onayla' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('shows the pagination summary and disables both buttons on a single page', async () => {
+    vi.mocked(useHasAnyRole).mockReturnValue(true)
+
+    renderPage()
+
+    expect(await screen.findByText('1–1 / 1')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Önceki' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Sonraki' })).toBeDisabled()
+  })
+
+  it('requests the next page when Sonraki is clicked', async () => {
+    vi.mocked(useHasAnyRole).mockReturnValue(true)
+    vi.mocked(apiClient.get).mockImplementation((url: string, config) => {
+      if (url === '/goods-receipts') {
+        return Promise.resolve({
+          data: {
+            items: [DRAFT_RECEIPT],
+            totalCount: 25,
+            page: (config?.params as { page?: number })?.page ?? 1,
+            pageSize: 20,
+          },
+        })
+      }
+      if (url === '/warehouses') {
+        return Promise.resolve({ data: [WAREHOUSE] })
+      }
+      return Promise.reject(new Error(`Unexpected GET ${url}`))
+    })
+
+    renderPage()
+
+    await screen.findByText('1–20 / 25')
+    const nextButton = screen.getByRole('button', { name: 'Sonraki' })
+    expect(nextButton).not.toBeDisabled()
+
+    const user = userEvent.setup()
+    await user.click(nextButton)
+
+    await waitFor(() =>
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/goods-receipts',
+        expect.objectContaining({ params: expect.objectContaining({ page: 2 }) }),
+      ),
+    )
   })
 
   it('approves a draft receipt after confirming', async () => {

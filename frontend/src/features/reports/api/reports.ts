@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { apiClient } from '@/lib/axios'
+import type { PagedResult } from '@/lib/pagination'
 
 import type {
   StockCountVarianceFilters,
@@ -27,7 +28,7 @@ export function useStockMovements(filters: StockMovementFilters) {
   return useQuery({
     queryKey: ['reports', 'stock-movements', filters],
     queryFn: async () => {
-      const response = await apiClient.get<StockMovementDto[]>(
+      const response = await apiClient.get<PagedResult<StockMovementDto>>(
         '/stock/movements',
         { params: filters },
       )

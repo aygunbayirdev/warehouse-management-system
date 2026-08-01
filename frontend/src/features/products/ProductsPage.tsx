@@ -2,6 +2,7 @@ import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { type FormEvent, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { PaginationControls } from '@/components/PaginationControls'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -196,34 +197,13 @@ export function ProductsPage() {
         </TableBody>
       </Table>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          {totalCount === 0
-            ? 'Kayıt yok'
-            : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, totalCount)} / ${totalCount}`}
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage((current) => current - 1)}
-          >
-            Önceki
-          </Button>
-          <span>
-            Sayfa {page} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setPage((current) => current + 1)}
-          >
-            Sonraki
-          </Button>
-        </div>
-      </div>
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
 
       <ProductFormDialog
         key={editingProduct?.id ?? 'new'}

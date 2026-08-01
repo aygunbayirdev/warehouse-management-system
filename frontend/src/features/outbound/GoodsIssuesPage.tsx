@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PaginationControls } from '@/components/PaginationControls'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +47,8 @@ const APPROVE_ROLES = [
   RoleNames.WarehouseSupervisor,
 ]
 
+const PAGE_SIZE = 20
+
 const STATUS_ITEMS: Record<string, string> = {
   [ALL_VALUE]: 'Tüm durumlar',
   Draft: 'Taslak',
@@ -75,12 +78,18 @@ export function GoodsIssuesPage() {
   const [statusFilter, setStatusFilter] = useState<
     GoodsIssueStatus | undefined
   >()
+  const [page, setPage] = useState(1)
 
   const { data: warehouses } = useWarehouses()
-  const { data: issues, isLoading } = useGoodsIssues({
+  const { data, isLoading } = useGoodsIssues({
     warehouseId: warehouseFilter,
     status: statusFilter,
+    page,
+    pageSize: PAGE_SIZE,
   })
+  const issues = data?.items
+  const totalCount = data?.totalCount ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   const warehouseItems = useMemo(
     () => ({
@@ -113,9 +122,10 @@ export function GoodsIssuesPage() {
         <Select
           items={warehouseItems}
           value={warehouseFilter ?? ALL_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setWarehouseFilter(!value || value === ALL_VALUE ? undefined : value)
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Tüm depolar" />
@@ -133,13 +143,14 @@ export function GoodsIssuesPage() {
         <Select
           items={STATUS_ITEMS}
           value={statusFilter ?? ALL_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setStatusFilter(
               !value || value === ALL_VALUE
                 ? undefined
                 : (value as GoodsIssueStatus),
             )
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Tüm durumlar" />
@@ -191,6 +202,14 @@ export function GoodsIssuesPage() {
           ))}
         </TableBody>
       </Table>
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
 
       <Dialog
         open={viewingIssue !== null}

@@ -1,5 +1,6 @@
 using System.Text;
 using Dapper;
+using WMS.BuildingBlocks.Application.Models;
 using WMS.BuildingBlocks.Infrastructure.Persistence;
 using WMS.Modules.Outbound.Application.Abstractions;
 using WMS.Modules.Outbound.Application.Dtos;
@@ -38,40 +39,71 @@ internal sealed class GoodsIssueReadRepository(ISqlConnectionFactory connectionF
         return rows.Count == 0 ? null : MapToDto(rows);
     }
 
-    public async Task<IReadOnlyCollection<GoodsIssueDto>> GetListAsync(
+    public async Task<PagedResult<GoodsIssueDto>> GetListAsync(
         Guid? warehouseId,
         GoodsIssueStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken)
     {
-        var sql = new StringBuilder(BaseSql);
         var parameters = new DynamicParameters();
-        var hasWhere = false;
+        parameters.Add("PageSize", pageSize);
+        parameters.Add("Skip", (page - 1) * pageSize);
 
         if (warehouseId is not null)
         {
-            sql.Append(" WHERE gi.warehouse_id = @WarehouseId");
             parameters.Add("WarehouseId", warehouseId);
-            hasWhere = true;
         }
 
         if (status is not null)
         {
-            sql.Append(hasWhere ? " AND " : " WHERE ");
-            sql.Append("gi.status = @Status");
             parameters.Add("Status", status.Value.ToString());
         }
 
-        sql.Append(" ORDER BY gi.created_at_utc DESC");
+        string BuildWhere(string alias)
+        {
+            var clause = new StringBuilder();
+            var hasWhere = false;
+
+            if (warehouseId is not null)
+            {
+                clause.Append($" WHERE {alias}.warehouse_id = @WarehouseId");
+                hasWhere = true;
+            }
+
+            if (status is not null)
+            {
+                clause.Append(hasWhere ? " AND " : " WHERE ");
+                clause.Append($"{alias}.status = @Status");
+            }
+
+            return clause.ToString();
+        }
+
+        // Pagination runs over a distinct header-id subquery, see GoodsReceiptReadRepository for why.
+        var sql = $"""
+            SELECT COUNT(*) FROM outbound.goods_issues gi{BuildWhere("gi")};
+            {BaseSql} WHERE gi.id IN (
+                SELECT gi2.id FROM outbound.goods_issues gi2{BuildWhere("gi2")}
+                ORDER BY gi2.created_at_utc DESC
+                LIMIT @PageSize OFFSET @Skip
+            )
+            ORDER BY gi.created_at_utc DESC;
+            """;
 
         using var connection = connectionFactory.CreateConnection();
-        var command = new CommandDefinition(sql.ToString(), parameters, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, parameters, cancellationToken: cancellationToken);
 
-        var rows = await connection.QueryAsync<GoodsIssueRow>(command);
+        await using var multi = await connection.QueryMultipleAsync(command);
+        var totalCount = await multi.ReadSingleAsync<int>();
+        var rows = (await multi.ReadAsync<GoodsIssueRow>()).ToList();
 
-        return rows
+        var items = rows
             .GroupBy(row => row.Id)
             .Select(group => MapToDto(group.ToList()))
             .ToList();
+
+        return new PagedResult<GoodsIssueDto>(items, totalCount, page, pageSize);
     }
 
     private static GoodsIssueDto MapToDto(IReadOnlyCollection<GoodsIssueRow> rows)

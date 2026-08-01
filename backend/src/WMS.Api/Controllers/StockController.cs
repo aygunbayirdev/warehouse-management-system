@@ -35,9 +35,12 @@ public sealed class StockController(ISender sender) : ControllerBase
         [FromQuery] Guid? productId,
         [FromQuery] DateTime? fromUtc,
         [FromQuery] DateTime? toUtc,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var result = await sender.Send(new GetStockMovementsQuery(warehouseId, productId, fromUtc, toUtc), cancellationToken);
+        var result = await sender.Send(
+            new GetStockMovementsQuery(warehouseId, productId, fromUtc, toUtc, page, pageSize), cancellationToken);
 
         return result.ToActionResult();
     }

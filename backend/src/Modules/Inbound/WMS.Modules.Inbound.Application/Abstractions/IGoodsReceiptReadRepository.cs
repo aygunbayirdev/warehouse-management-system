@@ -1,3 +1,4 @@
+using WMS.BuildingBlocks.Application.Models;
 using WMS.Modules.Inbound.Application.Dtos;
 using WMS.Modules.Inbound.Domain;
 
@@ -7,8 +8,10 @@ public interface IGoodsReceiptReadRepository
 {
     Task<GoodsReceiptDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyCollection<GoodsReceiptDto>> GetListAsync(
+    Task<PagedResult<GoodsReceiptDto>> GetListAsync(
         Guid? warehouseId,
         GoodsReceiptStatus? status,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken);
 }

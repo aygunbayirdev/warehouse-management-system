@@ -3,6 +3,7 @@ import { type FormEvent, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PaginationControls } from '@/components/PaginationControls'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -42,6 +43,8 @@ const SESSION_MANAGE_ROLES = [
   RoleNames.WarehouseManager,
   RoleNames.WarehouseSupervisor,
 ]
+
+const PAGE_SIZE = 20
 
 const STATUS_ITEMS: Record<string, string> = {
   [ALL_VALUE]: 'Tüm durumlar',
@@ -85,12 +88,18 @@ export function StockCountsPage() {
     StockCountStatus | undefined
   >()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [page, setPage] = useState(1)
 
   const { data: warehouses } = useWarehouses()
-  const { data: stockCounts, isLoading } = useStockCounts({
+  const { data, isLoading } = useStockCounts({
     warehouseId: warehouseFilter,
     status: statusFilter,
+    page,
+    pageSize: PAGE_SIZE,
   })
+  const stockCounts = data?.items
+  const totalCount = data?.totalCount ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   const warehouseItems = useMemo(
     () => ({
@@ -117,9 +126,10 @@ export function StockCountsPage() {
         <Select
           items={warehouseItems}
           value={warehouseFilter ?? ALL_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setWarehouseFilter(!value || value === ALL_VALUE ? undefined : value)
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Depo" />
@@ -137,13 +147,14 @@ export function StockCountsPage() {
         <Select
           items={STATUS_ITEMS}
           value={statusFilter ?? ALL_VALUE}
-          onValueChange={(value: string | null) =>
+          onValueChange={(value: string | null) => {
             setStatusFilter(
               !value || value === ALL_VALUE
                 ? undefined
                 : (value as StockCountStatus),
             )
-          }
+            setPage(1)
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Tüm durumlar" />
@@ -196,6 +207,14 @@ export function StockCountsPage() {
           ))}
         </TableBody>
       </Table>
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
 
       <CreateStockCountDialog
         open={isCreateOpen}

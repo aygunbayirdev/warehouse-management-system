@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { apiClient } from '@/lib/axios'
+import type { PagedResult } from '@/lib/pagination'
 
 import type {
   CreateStockTransferPayload,
@@ -12,7 +13,7 @@ export function useStockTransfers(filters: StockTransferFilters) {
   return useQuery({
     queryKey: ['stock-transfers', filters],
     queryFn: async () => {
-      const response = await apiClient.get<StockTransferDto[]>(
+      const response = await apiClient.get<PagedResult<StockTransferDto>>(
         '/stock-transfers',
         { params: filters },
       )
