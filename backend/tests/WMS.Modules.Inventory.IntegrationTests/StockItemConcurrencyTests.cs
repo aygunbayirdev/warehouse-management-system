@@ -37,7 +37,7 @@ public sealed class StockItemConcurrencyTests : IAsyncLifetime
 
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDomainEventDispatching();
+        services.AddDomainEventOutbox();
         services.AddInventoryModule(configuration);
         _serviceProvider = services.BuildServiceProvider();
 

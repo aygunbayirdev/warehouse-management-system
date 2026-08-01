@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WMS.BuildingBlocks.Infrastructure.Persistence;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.Modules.Catalog.Application;
 using WMS.Modules.Catalog.Application.Abstractions;
 using WMS.Modules.Catalog.Infrastructure.Persistence;
@@ -33,7 +33,7 @@ public static class CatalogModule
                 connectionString,
                 npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", CatalogDbContext.Schema));
             options.UseSnakeCaseNamingConvention();
-            options.AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>());
+            options.AddInterceptors(sp.GetRequiredService<OutboxWritingInterceptor>());
         });
 
         services.AddScoped<IUnitOfMeasureWriteRepository, UnitOfMeasureWriteRepository>();

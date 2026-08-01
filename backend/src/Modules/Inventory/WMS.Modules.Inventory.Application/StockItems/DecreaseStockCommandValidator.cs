@@ -6,6 +6,8 @@ public sealed class DecreaseStockCommandValidator : AbstractValidator<DecreaseSt
 {
     public DecreaseStockCommandValidator()
     {
+        RuleFor(command => command.SourceEventId).NotEmpty();
+        RuleFor(command => command.LineNumber).GreaterThanOrEqualTo(0);
         RuleFor(command => command.WarehouseId).NotEmpty();
         RuleFor(command => command.ProductId).NotEmpty();
         RuleFor(command => command.Quantity).GreaterThan(0);

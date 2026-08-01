@@ -37,7 +37,7 @@ public sealed class ProductRoundtripTests : IAsyncLifetime
 
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDomainEventDispatching();
+        services.AddDomainEventOutbox();
         services.AddSqlConnectionFactory(_fixture.ConnectionString);
         services.AddCatalogModule(configuration);
         _serviceProvider = services.BuildServiceProvider();

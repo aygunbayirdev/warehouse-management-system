@@ -20,10 +20,13 @@ public sealed class StockTransferReceivedDomainEventHandler(
     public async Task Handle(DomainEventNotification<StockTransferReceivedDomainEvent> notification, CancellationToken cancellationToken)
     {
         var domainEvent = notification.DomainEvent;
+        var lineNumber = 0;
 
         foreach (var line in domainEvent.Lines)
         {
             var command = new IncreaseStockCommand(
+                notification.OutboxMessageId,
+                lineNumber,
                 domainEvent.DestinationWarehouseId,
                 line.ProductId,
                 line.Quantity,
@@ -41,6 +44,8 @@ public sealed class StockTransferReceivedDomainEventHandler(
                     result.Error.Code,
                     result.Error.Message);
             }
+
+            lineNumber++;
         }
     }
 }

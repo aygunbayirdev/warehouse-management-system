@@ -38,7 +38,7 @@ public sealed class StockCountAdjustmentPersistenceTests : IAsyncLifetime
 
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDomainEventDispatching();
+        services.AddDomainEventOutbox();
         services.AddStockCountModule(configuration);
         _serviceProvider = services.BuildServiceProvider();
 

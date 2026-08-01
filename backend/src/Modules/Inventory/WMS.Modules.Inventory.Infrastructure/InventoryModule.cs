@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WMS.BuildingBlocks.Infrastructure.Persistence;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.Modules.Inventory.Application;
 using WMS.Modules.Inventory.Application.Abstractions;
 using WMS.Modules.Inventory.Infrastructure.Persistence;
@@ -33,7 +33,7 @@ public static class InventoryModule
                 connectionString,
                 npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", InventoryDbContext.Schema));
             options.UseSnakeCaseNamingConvention();
-            options.AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>());
+            options.AddInterceptors(sp.GetRequiredService<OutboxWritingInterceptor>());
         });
 
         services.AddScoped<IWarehouseWriteRepository, WarehouseWriteRepository>();
@@ -42,6 +42,7 @@ public static class InventoryModule
         services.AddScoped<IStockMovementWriteRepository, StockMovementWriteRepository>();
         services.AddScoped<IStockItemReadRepository, StockItemReadRepository>();
         services.AddScoped<IStockMovementReadRepository, StockMovementReadRepository>();
+        services.AddScoped<IProcessedDomainEventWriteRepository, ProcessedDomainEventWriteRepository>();
 
         return services;
     }

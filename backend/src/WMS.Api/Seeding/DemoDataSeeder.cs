@@ -7,6 +7,7 @@ using WMS.Modules.Catalog.Application.UnitsOfMeasure;
 using WMS.Modules.Identity.Application.Abstractions;
 using WMS.Modules.Identity.Infrastructure.Seeding;
 using WMS.Modules.Inbound.Application.GoodsReceipts;
+using WMS.Modules.Inventory.Application.StockItems;
 using WMS.Modules.Inventory.Application.Warehouses;
 using WMS.Modules.Outbound.Application.GoodsIssues;
 using WMS.Modules.StockCount.Application.StockCounts;
@@ -115,9 +116,18 @@ public static class DemoDataSeeder
         (Guid ProductId, decimal Quantity)[] lines,
         CancellationToken cancellationToken)
     {
+        var before = await GetQuantitiesAsync(sender, warehouseId, lines.Select(line => line.ProductId), cancellationToken);
+
         var lineInputs = lines.Select(line => new GoodsReceiptLineInput(line.ProductId, line.Quantity)).ToList();
         var id = await SendForIdAsync(sender, new CreateGoodsReceiptCommand(warehouseId, lineInputs, createdByUserId), cancellationToken);
         await SendAsync(sender, new ApproveGoodsReceiptCommand(id), cancellationToken);
+
+        // Approval only raises a domain event now (bkz. WMS.BuildingBlocks.Infrastructure.Outbox) —
+        // Inventory's stock increase happens asynchronously via the OutboxProcessor relay, not inline
+        // with this call. Later seeding steps (a goods issue, a stock count) assume this stock is
+        // already there, so we wait for it here rather than pushing that assumption onto every caller.
+        var expected = lines.Select(line => (line.ProductId, before[line.ProductId] + line.Quantity));
+        await WaitForStockAsync(sender, warehouseId, expected, cancellationToken);
     }
 
     private static async Task CreateAndApproveGoodsIssueAsync(
@@ -128,9 +138,55 @@ public static class DemoDataSeeder
         (Guid ProductId, decimal Quantity)[] lines,
         CancellationToken cancellationToken)
     {
+        var before = await GetQuantitiesAsync(sender, warehouseId, lines.Select(line => line.ProductId), cancellationToken);
+
         var lineInputs = lines.Select(line => new GoodsIssueLineInput(line.ProductId, line.Quantity)).ToList();
         var id = await SendForIdAsync(sender, new CreateGoodsIssueCommand(warehouseId, destination, lineInputs, createdByUserId), cancellationToken);
         await SendAsync(sender, new ApproveGoodsIssueCommand(id), cancellationToken);
+
+        var expected = lines.Select(line => (line.ProductId, before[line.ProductId] - line.Quantity));
+        await WaitForStockAsync(sender, warehouseId, expected, cancellationToken);
+    }
+
+    private static async Task<Dictionary<Guid, decimal>> GetQuantitiesAsync(
+        ISender sender, Guid warehouseId, IEnumerable<Guid> productIds, CancellationToken cancellationToken)
+    {
+        var stockItems = await sender.Send(new GetStockItemsQuery(warehouseId, null), cancellationToken);
+
+        return productIds.ToDictionary(
+            productId => productId,
+            productId => stockItems.Value.FirstOrDefault(item => item.ProductId == productId)?.Quantity ?? 0m);
+    }
+
+    private static async Task WaitForStockAsync(
+        ISender sender,
+        Guid warehouseId,
+        IEnumerable<(Guid ProductId, decimal ExpectedQuantity)> expectations,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(20);
+
+        foreach (var (productId, expectedQuantity) in expectations)
+        {
+            while (true)
+            {
+                var stockItems = await sender.Send(new GetStockItemsQuery(warehouseId, productId), cancellationToken);
+                var actualQuantity = stockItems.Value.FirstOrDefault()?.Quantity ?? 0m;
+
+                if (actualQuantity == expectedQuantity)
+                {
+                    break;
+                }
+
+                if (DateTime.UtcNow > deadline)
+                {
+                    throw new InvalidOperationException(
+                        $"Timed out waiting for the outbox relay to apply a stock update (warehouse {warehouseId}, product {productId}, expected {expectedQuantity}, got {actualQuantity}).");
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken);
+            }
+        }
     }
 
     private static async Task<Guid> SendForIdAsync(ISender sender, ICommand<Guid> command, CancellationToken cancellationToken)

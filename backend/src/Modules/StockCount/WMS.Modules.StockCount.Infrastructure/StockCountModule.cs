@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WMS.BuildingBlocks.Infrastructure.Persistence;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.Modules.StockCount.Application;
 using WMS.Modules.StockCount.Application.Abstractions;
 using WMS.Modules.StockCount.Infrastructure.Persistence;
@@ -33,13 +33,15 @@ public static class StockCountModule
                 connectionString,
                 npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", StockCountDbContext.Schema));
             options.UseSnakeCaseNamingConvention();
-            options.AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>());
+            options.AddInterceptors(sp.GetRequiredService<OutboxWritingInterceptor>());
         });
 
         services.AddScoped<IStockCountWriteRepository, StockCountWriteRepository>();
         services.AddScoped<IStockCountReadRepository, StockCountReadRepository>();
         services.AddScoped<IStockCountAdjustmentWriteRepository, StockCountAdjustmentWriteRepository>();
         services.AddScoped<IStockCountAdjustmentReadRepository, StockCountAdjustmentReadRepository>();
+
+        services.AddHostedService<OutboxProcessor<StockCountDbContext>>();
 
         return services;
     }

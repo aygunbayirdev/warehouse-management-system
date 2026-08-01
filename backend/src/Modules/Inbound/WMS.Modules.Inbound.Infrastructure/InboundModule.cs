@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WMS.BuildingBlocks.Infrastructure.Persistence;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.Modules.Inbound.Application;
 using WMS.Modules.Inbound.Application.Abstractions;
 using WMS.Modules.Inbound.Infrastructure.Persistence;
@@ -33,11 +33,13 @@ public static class InboundModule
                 connectionString,
                 npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", InboundDbContext.Schema));
             options.UseSnakeCaseNamingConvention();
-            options.AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>());
+            options.AddInterceptors(sp.GetRequiredService<OutboxWritingInterceptor>());
         });
 
         services.AddScoped<IGoodsReceiptWriteRepository, GoodsReceiptWriteRepository>();
         services.AddScoped<IGoodsReceiptReadRepository, GoodsReceiptReadRepository>();
+
+        services.AddHostedService<OutboxProcessor<InboundDbContext>>();
 
         return services;
     }

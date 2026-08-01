@@ -21,10 +21,13 @@ public sealed class GoodsIssueApprovedDomainEventHandler(
     public async Task Handle(DomainEventNotification<GoodsIssueApprovedDomainEvent> notification, CancellationToken cancellationToken)
     {
         var domainEvent = notification.DomainEvent;
+        var lineNumber = 0;
 
         foreach (var line in domainEvent.Lines)
         {
             var command = new DecreaseStockCommand(
+                notification.OutboxMessageId,
+                lineNumber,
                 domainEvent.WarehouseId,
                 line.ProductId,
                 line.Quantity,
@@ -42,6 +45,8 @@ public sealed class GoodsIssueApprovedDomainEventHandler(
                     result.Error.Code,
                     result.Error.Message);
             }
+
+            lineNumber++;
         }
     }
 }

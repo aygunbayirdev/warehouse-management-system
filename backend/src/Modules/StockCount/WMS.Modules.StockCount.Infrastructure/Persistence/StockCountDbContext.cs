@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StockCountAggregate = WMS.Modules.StockCount.Domain.StockCount;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.Modules.StockCount.Domain;
 
 namespace WMS.Modules.StockCount.Infrastructure.Persistence;
@@ -13,6 +14,8 @@ public sealed class StockCountDbContext(DbContextOptions<StockCountDbContext> op
     public DbSet<StockCountLine> StockCountLines => Set<StockCountLine>();
 
     public DbSet<StockCountAdjustment> StockCountAdjustments => Set<StockCountAdjustment>();
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

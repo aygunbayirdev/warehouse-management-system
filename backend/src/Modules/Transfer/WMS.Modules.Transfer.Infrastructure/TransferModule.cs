@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WMS.BuildingBlocks.Infrastructure.Persistence;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.Modules.Transfer.Application;
 using WMS.Modules.Transfer.Application.Abstractions;
 using WMS.Modules.Transfer.Infrastructure.Persistence;
@@ -33,11 +33,13 @@ public static class TransferModule
                 connectionString,
                 npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history", TransferDbContext.Schema));
             options.UseSnakeCaseNamingConvention();
-            options.AddInterceptors(sp.GetRequiredService<DomainEventDispatchInterceptor>());
+            options.AddInterceptors(sp.GetRequiredService<OutboxWritingInterceptor>());
         });
 
         services.AddScoped<IStockTransferWriteRepository, StockTransferWriteRepository>();
         services.AddScoped<IStockTransferReadRepository, StockTransferReadRepository>();
+
+        services.AddHostedService<OutboxProcessor<TransferDbContext>>();
 
         return services;
     }

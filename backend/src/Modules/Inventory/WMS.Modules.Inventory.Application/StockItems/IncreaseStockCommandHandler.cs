@@ -7,11 +7,18 @@ namespace WMS.Modules.Inventory.Application.StockItems;
 
 public sealed class IncreaseStockCommandHandler(
     IStockItemWriteRepository stockItemWriteRepository,
-    IStockMovementWriteRepository stockMovementWriteRepository)
+    IStockMovementWriteRepository stockMovementWriteRepository,
+    IProcessedDomainEventWriteRepository processedDomainEventWriteRepository)
     : ICommandHandler<IncreaseStockCommand>
 {
     public async Task<Result> Handle(IncreaseStockCommand request, CancellationToken cancellationToken)
     {
+        // The outbox relay guarantees at-least-once delivery; a redelivered command must not double-apply.
+        if (await processedDomainEventWriteRepository.ExistsAsync(request.SourceEventId, request.LineNumber, cancellationToken))
+        {
+            return Result.Success();
+        }
+
         var stockItem = await stockItemWriteRepository.GetOrCreateAsync(request.WarehouseId, request.ProductId, cancellationToken);
 
         stockItem.Increase(request.Quantity);
@@ -24,6 +31,9 @@ public sealed class IncreaseStockCommandHandler(
             request.Reason);
 
         stockMovementWriteRepository.Add(movement);
+
+        processedDomainEventWriteRepository.Add(
+            new ProcessedDomainEvent(request.SourceEventId, request.LineNumber, DateTimeOffset.UtcNow));
 
         try
         {

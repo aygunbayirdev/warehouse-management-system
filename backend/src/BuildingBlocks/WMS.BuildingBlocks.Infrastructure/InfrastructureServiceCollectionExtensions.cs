@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.BuildingBlocks.Infrastructure.Persistence;
 
 namespace WMS.BuildingBlocks.Infrastructure;
@@ -6,12 +7,12 @@ namespace WMS.BuildingBlocks.Infrastructure;
 public static class InfrastructureServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="DomainEventDispatchInterceptor"/> so module DbContexts can pull it in via
-    /// <c>options.AddInterceptors(sp.GetRequiredService&lt;DomainEventDispatchInterceptor&gt;())</c>.
+    /// Registers <see cref="OutboxWritingInterceptor"/> so module DbContexts can pull it in via
+    /// <c>options.AddInterceptors(sp.GetRequiredService&lt;OutboxWritingInterceptor&gt;())</c>.
     /// </summary>
-    public static IServiceCollection AddDomainEventDispatching(this IServiceCollection services)
+    public static IServiceCollection AddDomainEventOutbox(this IServiceCollection services)
     {
-        services.AddScoped<DomainEventDispatchInterceptor>();
+        services.AddScoped<OutboxWritingInterceptor>();
 
         return services;
     }

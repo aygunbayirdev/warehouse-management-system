@@ -45,7 +45,7 @@ try
     // Cross-module building blocks: MediatR pipeline behaviors, EF Core domain-event dispatch,
     // and the shared Dapper connection factory used by every module's read side.
     builder.Services.AddApplicationBehaviors();
-    builder.Services.AddDomainEventDispatching();
+    builder.Services.AddDomainEventOutbox();
 
     var connectionString = builder.Configuration.GetConnectionString("Default")
         ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
@@ -133,10 +133,18 @@ try
 
     if (app.Configuration.GetValue("Seeding:SeedDemoData", true))
     {
+        // Uses Start/WaitForShutdown instead of Run() so the per-module OutboxProcessor hosted
+        // services (started as part of StartAsync) are already polling before seeding runs — the
+        // seeder's goods receipts/issues/etc. raise domain events that only reach Inventory through
+        // the outbox relay now, so it needs that relay actually running, not just registered.
+        await app.StartAsync();
         await DemoDataSeeder.SeedAsync(app.Services);
+        await app.WaitForShutdownAsync();
     }
-
-    app.Run();
+    else
+    {
+        app.Run();
+    }
 }
 catch (Exception ex) when (ex is not HostAbortedException)
 {

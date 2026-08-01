@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.BuildingBlocks.Infrastructure.Outbox;
 using WMS.Modules.Transfer.Domain;
 
 namespace WMS.Modules.Transfer.Infrastructure.Persistence;
@@ -10,6 +11,8 @@ public sealed class TransferDbContext(DbContextOptions<TransferDbContext> option
     public DbSet<StockTransfer> StockTransfers => Set<StockTransfer>();
 
     public DbSet<StockTransferLine> StockTransferLines => Set<StockTransferLine>();
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

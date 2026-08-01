@@ -23,6 +23,26 @@ namespace WMS.Modules.Inventory.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("WMS.Modules.Inventory.Domain.ProcessedDomainEvent", b =>
+                {
+                    b.Property<Guid>("SourceEventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_event_id");
+
+                    b.Property<int>("LineNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("line_number");
+
+                    b.Property<DateTimeOffset>("ProcessedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at_utc");
+
+                    b.HasKey("SourceEventId", "LineNumber")
+                        .HasName("pk_processed_domain_events");
+
+                    b.ToTable("processed_domain_events", "inventory");
+                });
+
             modelBuilder.Entity("WMS.Modules.Inventory.Domain.StockItem", b =>
                 {
                     b.Property<Guid>("Id")

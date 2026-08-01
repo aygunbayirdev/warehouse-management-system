@@ -23,12 +23,16 @@ public sealed class StockCountAdjustmentApprovedDomainEventHandler(
         var domainEvent = notification.DomainEvent;
         var reason = $"Stock count adjustment {domainEvent.StockCountAdjustmentId} approved";
 
+        const int lineNumber = 0;
+
         var result = domainEvent.DifferenceQuantity > 0
             ? await sender.Send(
-                new IncreaseStockCommand(domainEvent.WarehouseId, domainEvent.ProductId, domainEvent.DifferenceQuantity, reason),
+                new IncreaseStockCommand(
+                    notification.OutboxMessageId, lineNumber, domainEvent.WarehouseId, domainEvent.ProductId, domainEvent.DifferenceQuantity, reason),
                 cancellationToken)
             : await sender.Send(
-                new DecreaseStockCommand(domainEvent.WarehouseId, domainEvent.ProductId, -domainEvent.DifferenceQuantity, reason),
+                new DecreaseStockCommand(
+                    notification.OutboxMessageId, lineNumber, domainEvent.WarehouseId, domainEvent.ProductId, -domainEvent.DifferenceQuantity, reason),
                 cancellationToken);
 
         if (result.IsFailure)
