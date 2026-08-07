@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -11,13 +11,56 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useLowStockItems, usePendingApprovals } from '@/features/dashboard/api/dashboard'
 import { useProducts } from '@/features/products/api/products'
 import { useStockMovements } from '@/features/reports/api/reports'
 import { useWarehouses } from '@/features/warehouses/api/warehouses'
 
 const LOW_STOCK_LIMIT = 10
-const MOVEMENTS_DAYS = 7
+
+type MovementRange = '7g' | '1a' | '1y'
+
+const MOVEMENT_RANGES: Record<MovementRange, { label: string; days: number; granularity: 'day' | 'month' }> = {
+  '7g': { label: '7 Gün', days: 7, granularity: 'day' },
+  '1a': { label: '1 Ay', days: 30, granularity: 'day' },
+  '1y': { label: '1 Yıl', days: 365, granularity: 'month' },
+}
+
+const MONTH_LABELS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
+
+function buildDayBuckets(days: number) {
+  const buckets = new Map<string, { date: string; artis: number; azalis: number }>()
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    const key = date.toISOString().slice(0, 10)
+    buckets.set(key, { date: key, artis: 0, azalis: 0 })
+  }
+
+  return buckets
+}
+
+function buildMonthBuckets(months: number) {
+  const buckets = new Map<string, { date: string; artis: number; azalis: number }>()
+  const now = new Date()
+
+  for (let i = months - 1; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    buckets.set(key, { date: key, artis: 0, azalis: 0 })
+  }
+
+  return buckets
+}
+
+function formatBucketLabel(value: string, granularity: 'day' | 'month') {
+  if (granularity === 'month') {
+    return MONTH_LABELS[Number(value.slice(5, 7)) - 1] ?? value
+  }
+  return value.slice(5)
+}
 
 function StatCard({ title, value, to }: { title: string; value: number; to?: string }) {
   const content = (
@@ -39,26 +82,23 @@ function StatCard({ title, value, to }: { title: string; value: number; to?: str
 }
 
 function StockMovementsChart() {
+  const [range, setRange] = useState<MovementRange>('7g')
+  const { days, granularity } = MOVEMENT_RANGES[range]
+
   const fromUtc = useMemo(() => {
     const date = new Date()
-    date.setDate(date.getDate() - MOVEMENTS_DAYS)
+    date.setDate(date.getDate() - days)
     return date.toISOString()
-  }, [])
+  }, [days])
 
   const { data } = useStockMovements({ fromUtc, page: 1, pageSize: 100 })
 
   const chartData = useMemo(() => {
-    const buckets = new Map<string, { date: string; artis: number; azalis: number }>()
-
-    for (let i = MOVEMENTS_DAYS - 1; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const key = date.toISOString().slice(0, 10)
-      buckets.set(key, { date: key, artis: 0, azalis: 0 })
-    }
+    const buckets = granularity === 'month' ? buildMonthBuckets(12) : buildDayBuckets(days)
+    const keyLength = granularity === 'month' ? 7 : 10
 
     for (const movement of data?.items ?? []) {
-      const key = movement.occurredAtUtc.slice(0, 10)
+      const key = movement.occurredAtUtc.slice(0, keyLength)
       const bucket = buckets.get(key)
       if (!bucket) continue
 
@@ -70,12 +110,23 @@ function StockMovementsChart() {
     }
 
     return Array.from(buckets.values())
-  }, [data])
+  }, [data, days, granularity])
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Son 7 Gün Stok Hareketleri</CardTitle>
+        <CardTitle>Stok Hareketleri</CardTitle>
+        <CardAction>
+          <Tabs value={range} onValueChange={(value) => setRange(value as MovementRange)}>
+            <TabsList>
+              {Object.entries(MOVEMENT_RANGES).map(([value, config]) => (
+                <TabsTrigger key={value} value={value}>
+                  {config.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </CardAction>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>
@@ -83,12 +134,13 @@ function StockMovementsChart() {
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis
               dataKey="date"
-              tickFormatter={(value: string) => value.slice(5)}
+              tickFormatter={(value: string) => formatBucketLabel(value, granularity)}
               fontSize={12}
               tickLine={false}
+              interval={granularity === 'day' && days > 7 ? 3 : 0}
             />
             <YAxis fontSize={12} tickLine={false} allowDecimals={false} />
-            <Tooltip />
+            <Tooltip labelFormatter={(label) => formatBucketLabel(String(label), granularity)} />
             <Bar dataKey="artis" name="Artış" fill="#22c55e" radius={[4, 4, 0, 0]} />
             <Bar dataKey="azalis" name="Azalış" fill="#ef4444" radius={[4, 4, 0, 0]} />
           </BarChart>

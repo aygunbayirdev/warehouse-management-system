@@ -111,7 +111,10 @@ describe('DashboardPage', () => {
     expect(await within(getStatCard('Toplam Depo')).findByText('5')).toBeInTheDocument()
     expect(await within(getStatCard('Bekleyen Onaylar')).findByText('11')).toBeInTheDocument()
     expect(await within(getStatCard('Düşük Stok Uyarısı')).findByText('2')).toBeInTheDocument()
-    expect(screen.getByText('Son 7 Gün Stok Hareketleri')).toBeInTheDocument()
+    expect(screen.getByText('Stok Hareketleri')).toBeInTheDocument()
+    expect(screen.getByText('7 Gün')).toBeInTheDocument()
+    expect(screen.getByText('1 Ay')).toBeInTheDocument()
+    expect(screen.getByText('1 Yıl')).toBeInTheDocument()
   })
 
   it('renders the low stock table rows', async () => {
